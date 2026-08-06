@@ -1,0 +1,63 @@
+# ## Code Example: Prompt Engineering in Python
+
+The following Python code snippet is part of our discussion on the techniques of prompt engineering. This code is found in the file `chatbot_prompt_engineering.py`. It demonstrates the creation of a basic conversational AI, commonly known as a chatbot.
+
+The chatbot uses a range of prompts that are determined by the 's previous inputs. The code contains methods to:
+
+- Handle  input
+- Generate appropriate prompts based on that input
+- Carry out the conversation
+
+This code example is especially useful when you're developing a  that needs to interact with s in a dynamic conversation. It forms a foundation upon which advanced conversational features can be built.
+
+```python
+# chatbot_prompt_engineering.py code goes here
+```
+
+This code example and its techniques are applicable to the broader topic of prompting in programming. Understanding the what, how, and why of prompting can greatly enhance the interactivity and -friendliness of your applications.
+# Language: Python
+# Section: Techniques in Prompt Engineering – Unleashing the Power
+
+python
+# Importing the necessary libraries
+import random
+
+class ChatBot:
+    # Initializer / Instance attributes
+    def __init__(self):
+        self._input = ""
+        self.round = 0
+
+    # Method to handle the prompt generation
+    def generate_prompt(self):
+        # The first round, give a generic welcome prompt
+        if self.round == 0:
+            return "Hello! How can I assist you today?"
+        # If the  has previously said nothing helpful, ask for more information
+        elif self._input in ["", "I don't know", "Not sure"]:
+            return "Could you please provide more details?"
+        # If the  has previously asked for help, provide help
+        elif "help" in self._input:
+            return "Here are some things you can ask me..."
+        else:
+            # If none of the above apply, give a generic prompt
+            return "Can I help you with anything else?"
+
+    # Method to handle  input
+    def handle_input(self, input):
+        self._input = input
+        self.round += 1
+
+    # Method to handle the conversation
+    def converse(self, input):
+        self.handle_input(input)
+        return self.generate_prompt()
+
+# Create a new chatbot instance
+bot = ChatBot()
+
+# Simulate a conversation
+print(bot.converse("Hello"))  # Returns: "Hello! How can I assist you today?"
+print(bot.converse(""))  # Returns: "Could you please provide more details?"
+print(bot.converse("I need help"))  # Returns: "Here are some things you can ask me..."
+print(bot.converse("Thank you"))  # Returns: "Can I help you with anything else?"

@@ -1,0 +1,5 @@
+# Simple MCP test
+# Language: python
+# Section: MCP Integration Test
+
+print('Hello from MCP!')

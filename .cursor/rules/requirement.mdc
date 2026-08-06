@@ -1,0 +1,33 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Basic requirements
+This is a Multi-agent agentic ai project which generates blog posts or multiple types.
+This is called a imposter - i'm poster
+- Should generate Blog post in Markdown format, with rich formatting.
+- should use mcp tools publicly available
+- if a tool for purpose is not availble do create one of our own
+- always create a sub directory for the blogs and works within them
+- document every component in docs directory
+- document every task completed as a worklog in worklog directory
+- always think, plan and implement, fix
+- always update the worklog at the start with proper to be done and keep updating when a todo is done.
+- always update the consolidated worklog at the end of each task
+
+
+# Types of blogs
+## Tech Blog:
+- creates a sub directory for the blogs and works within them
+- creates a blog post with a friendly, subtle funny, conversational tone.
+- sprayed with example snippets with inline comments
+- creates a code directory with proper structure and install scripts and readme
+- Structure of the blog as follows:
+    - Goal - bullet points of the goals we want to acheive in this blog post
+    - Approach - the approach which we will take to acheive the goal
+    - Topic breakup - break up the approach into topics which will be covered
+    - Topic - good explanation of the topic and details
+    - wrapup - consolidate the blog post in bulltet points
+    - references - reference used and further reading recommendations - urls and a short description
+    - conclusion and next steps 

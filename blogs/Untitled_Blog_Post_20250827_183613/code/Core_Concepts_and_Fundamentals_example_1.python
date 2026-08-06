@@ -1,0 +1,48 @@
+# ## Python Code Example: OpenAI GPT-3 Interaction
+
+In this Python script named `gpt3_prompt_engineering.py`, we have designed a function to interact with the OpenAI GPT-3 model. This function, named `get_ai_response`, has been crafted to facilitate a two-way interaction with the GPT-3 engine.
+
+The process is initiated by prompting the  to enter a string. This input is then sent as a prompt to the GPT-3 model. The model processes the input and generates a response, which is printed out for the . 
+
+This code example showcases the fundamental concept of interacting with AI models in Python. It is especially useful for developers who are exploring the capabilities of OpenAI's GPT-3 and want to integrate its functionality into their applications. 
+
+Here's the description transformed into a properly formatted Markdown:
+
+```markdown
+### Interacting with OpenAI GPT-3 Using Python
+
+In our core concept and fundamental section, we are featuring a Python script, `gpt3_prompt_engineering.py`. This script is designed to facilitate interaction with the OpenAI GPT-3 model.
+
+The central function, `get_ai_response`, initiates a prompt for the  to enter a string. This string is then passed to the GPT-3 model. After processing the input, the model returns a response which is then printed for the .
+
+This code example is an excellent starting point for developers looking to integrate GPT-3's capabilities into their Python applications. By understanding and utilizing this basic interaction, developers can explore more complex uses of the OpenAI GPT-3 model.
+```
+Remember, experimenting with this code will help you understand the power and potential of AI and Machine Learning. Happy coding!
+# Language: Python
+# Section: Core Concepts and Fundamentals
+
+python
+# We'll start by importing the OpenAI API
+import openai
+
+# Set your OpenAI API key
+openai.api_key = 'your-api-key-here' 
+
+# Let's define a function to interact with the GPT-3 model
+def get_ai_response(prompt):
+    """
+    Function to take a prompt as input, send it to GPT-3, and return the generated response.
+    """
+    # We're using the "davinci" engine, which is OpenAI's most advanced model.
+    response = openai.Completion.create(
+      engine="davinci",
+      prompt=prompt,
+      temperature=0.5, # This parameter controls the randomness of the model's output. Lower values make the output more deterministic.
+      max_tokens=100 # This parameter controls the maximum length of the output
+    )
+    return response.choices[0].text.strip() # We take the generated text from the response and strip any leading or trailing whitespace.
+
+# Now, we'll create an interactive prompt for the .
+_prompt = input("Please enter your prompt: ")
+print("AI response:")
+print(get_ai_response(_prompt)) # Call the function with the 's prompt and print the AI's response

@@ -1,0 +1,67 @@
+# ---
+## Best Practices and Tips
+
+### Using Context for AI Response Generation in Python
+
+In our Python code example, we'll explore how context can significantly enhance the relevance and accuracy of AI response generation. 
+
+**File:** `ai_response_with_context.py`
+
+The function defined in this script takes a given prompt and context as input and generates an AI response using a pre-trained model and tokenizer. Here's what the function does:
+
+1. Adds the context to the prompt
+2. Tokenizes the combined input
+3. Generates the AI response
+4. Decodes the AI response before returning it
+
+To illustrate the context's impact, we'll use a prompt asking about the weather, with a context indicating that the conversation is about the current climate in New York. This approach helps the AI to provide more precise and contextually appropriate responses.
+
+This function is particularly useful when your AI needs to generate responses that are relevant to the specific situation or conversation. By providing appropriate context, you can enhance the AI's understanding and improve the quality of its responses.
+
+Here's the basic structure of the function:
+
+```python
+def generate_ai_response(prompt, context, pre_trained_model, tokenizer):
+    # Code implementation here
+```
+Remember, this is just a basic structure of the function. In the actual implementation, you would add the context to the prompt, tokenize the input, generate the AI response and decode it before returning.
+
+Stay tuned for more tips and best practices on AI response generation.
+# Language: Python
+# Section: Best Practices and Tips
+
+python
+# Import required libraries
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+def generate_ai_response(prompt, context, model, tokenizer):
+    """
+    Function to generate AI response using context and prompt
+    """
+
+    # Add context to the prompt
+    prompt_with_context = context + " " + prompt
+
+    # Tokenize the prompt with context
+    inputs = tokenizer.encode(prompt_with_context, return_tensors='pt')
+
+    # Generate the output
+    output = model.generate(inputs, max_length=100, num_return_sequences=1, no_repeat_ngram_size=2)
+
+    # Decode the output
+    response = tokenizer.decode(output[:, inputs.shape[-1]:][0], skip_special_tokens=True)
+
+    return response
+
+# Load pre-trained model and tokenizer
+model = GPT2LMHeadModel.from_pretrained('gpt2')
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+
+# Define the prompt and context
+prompt = "Tell me about the weather."
+context = "The conversation is about the current climate in New York."
+
+# Generate AI response
+response = generate_ai_response(prompt, context, model, tokenizer)
+
+print(response)

@@ -1,0 +1,52 @@
+# ## Code Example: Chatbot Prompts in Python
+
+In this section, we will explore a Python code example that demonstrates the concept of chatbot prompts. This is a key concept in creating interactive and dynamic chatbots. It's particularly useful when you want your chatbot to respond differently based on  inputs.
+
+The filename is `prompts_chatbot.py`, and this script utilizes a dictionary for managing prompts. These prompts, or  inputs, act as keys in the dictionary, and their corresponding responses are the values. 
+
+When the chatbot receives a prompt, it selects a random response associated with that prompt and returns it. If the chatbot doesn't recognize the prompt, it will respond with a default message.
+
+This approach can be beneficial when you're designing a chatbot that needs to handle a wide variety of inputs and provide diverse responses. It offers a simple yet effective way to manage and maintain a comprehensive set of  interactions.
+
+Here's the description of the code in a more precise way:
+
+```markdown
+**Filename:** `prompts_chatbot.py`
+
+**Language:** Python
+
+**Description:** This script demonstrates the use of prompts in chatbot interactions. Prompts ( inputs) and their corresponding responses are stored in a dictionary. When a  input is received, the chatbot selects a random response associated with that input and returns it. If the input is not recognized, the chatbot provides a default response.
+```
+
+Stay tuned as we delve deeper into the core concepts and fundamentals of chatbot programming in the following sections of this blog post.
+# Language: Python
+# Section: Core Concepts and Fundamentals
+
+python
+# Importing necessary libraries
+import random
+
+# A simple chatbot class
+class Chatbot:
+    def __init__(self):
+        # Predefined  prompts and corresponding  responses
+        self.prompts = {
+            "Hello": ["Hello, how can I help you today?", "Hi, what can I do for you?"],
+            "What's your name?": ["I'm Code Agent, a simple chatbot.", "You can call me Code Agent."],
+            "How are you?": ["I'm an AI, I don't have feelings, but thank you for asking.", "As an AI, I don't experience emotions. How about you?"]
+        }
+
+    def get_response(self, _prompt):
+        """This method returns a  response for a given  prompt."""
+        # System prompts are the responses that our chatbot gives to the  prompts
+        _prompt = self.prompts.get(_prompt, ["Sorry, I didn't understand that."])
+        return random.choice(_prompt)
+
+# Create an instance of our Chatbot
+bot = Chatbot()
+
+# Let's test our bot with some  prompts
+_prompts = ["Hello", "What's your name?", "How are you?", "Unknown prompt"]
+for prompt in _prompts:
+    print(f"User: {prompt}")
+    print(f"Bot: {bot.get_response(prompt)}")

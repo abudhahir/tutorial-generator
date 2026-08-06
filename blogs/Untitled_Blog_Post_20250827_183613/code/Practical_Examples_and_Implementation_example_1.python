@@ -1,0 +1,64 @@
+# # Practical Examples and Implementation
+
+## AI Pizza Chatbot in Python
+
+In this section, we're going to take a detailed look at an example of a Python script named `ai_pizza_chatbot.py`. This script is designed to create an AI chatbot specifically tailored for a pizza delivery service.
+
+The main functions of this chatbot include:
+
+- Generating questions to ask the  about their pizza preferences.
+- Processing the 's responses.
+- Confirming the pizza order based on the 's input.
+
+The chatbot is programmed to ask the  about two primary things - the size of the pizza and the toppings they would like. Based on the 's responses, the AI chatbot then confirms the order.
+
+This script is a practical example of how AI can be leveraged to automate and streamline the order-taking process in a pizza delivery service. This would be particularly useful in situations where high volume of orders need to be efficiently managed.
+
+Consider implementing this script if you're looking to improve customer experience, reduce order processing time and potentially increase order accuracy.
+
+```python
+# Python code will go here
+```
+
+Stay with us as we dive deeper into understanding the intricacies of how this AI chatbot works in the upcoming sections.
+# Language: Python
+# Section: Practical Examples and Implementation
+
+python
+# Import necessary libraries
+from random import choice
+
+# Define a class to simulate our AI Pizza Chatbot
+class AIPizzaChatbot:
+    # Define a dictionary to hold our  prompts
+    _prompts = {
+        "greeting": "Hello! Welcome to PizzaBot. How may I assist you today?",
+        "size": "What size of pizza would you like? We have small, medium, and large.",
+        "topping": "What topping would you like on your pizza? We have pepperoni, mushrooms, and olives.",
+        "confirm": "Thank you for your order. Your {size} pizza with {topping} is on its way!"
+    }
+
+    # The constructor method initializes the bot with a greeting
+    def __init__(self):
+        print(self._prompts['greeting'])
+
+    # This method simulates the bot's response to  prompts
+    def respond_to_prompt(self, _prompt):
+        if "pizza" in _prompt:
+            print(self._prompts['size'])
+        elif any(size in _prompt for size in ['small', 'medium', 'large']):
+            print(self._prompts['topping'])
+        elif any(topping in _prompt for topping in ['pepperoni', 'mushrooms', 'olives']):
+            size = next(word for word in _prompt.split() if word in ['small', 'medium', 'large'])
+            topping = next(word for word in _prompt.split() if word in ['pepperoni', 'mushrooms', 'olives'])
+            print(self._prompts['confirm'].format(size=size, topping=topping))
+        else:
+            print("Sorry, I didn't understand that. Can you please repeat?")
+
+# Instantiate the PizzaBot
+pizza_bot = AIPizzaChatbot()
+
+# Simulate a  interaction
+_prompts = ["I want to order a pizza.", "I'll take a large one.", "Let's go with olives."]
+for prompt in _prompts:
+    pizza_bot.respond_to_prompt(prompt)

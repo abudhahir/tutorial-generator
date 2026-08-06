@@ -1,0 +1,40 @@
+# # Best Practices and Tips
+
+In this section, we will delve into an example demonstrating a practical use of the GPT-2 model in Python. This example is particularly useful when you need to guide an AI model to produce a specific output using a well-structured prompt.
+
+## Code Example
+
+**File:** `prompt_engineering_example.py`
+
+The following Python code demonstrates how to initialize a GPT-2 model and its accompanying tokenizer. It defines a clear and precise text prompt, which is then encoded and fed into the model. The AI model generates a response based on this input, which is subsequently decoded and printed out. This showcases the significance of a well-crafted text prompt in guiding an AI model's output.
+
+```python
+# Code Here
+```
+
+This code example serves as a great starting point for those looking to explore the power of GPT-2 models in Natural Language Processing tasks. It's particularly useful when you need the model to generate specific or targeted responses.
+
+Remember, the quality of the output greatly depends on how well you structure your prompt. So, spend adequate time crafting precise and clear prompts to guide the AI model effectively. Happy coding!
+# Language: Python
+# Section: Best Practices and Tips
+
+python
+# Importing required libraries
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+# Initialize the model and tokenizer
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+model = GPT2LMHeadModel.from_pretrained('gpt2')
+
+# Define a clear and precise prompt
+prompt = "Write a short story about a brave knight."
+
+# Use the tokenizer to encode the text prompt
+input_ids = tokenizer.encode(prompt, return_tensors='pt')
+
+# Generate a response from the AI model
+output = model.generate(input_ids, max_length=150, num_return_sequences=1, no_repeat_ngram_size=2)
+
+# Decode the output and print the AI's response
+generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+print(generated_text)

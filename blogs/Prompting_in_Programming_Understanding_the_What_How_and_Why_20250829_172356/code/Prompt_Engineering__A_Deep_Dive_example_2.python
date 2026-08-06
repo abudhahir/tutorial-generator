@@ -1,0 +1,66 @@
+# # Prompting in Programming: Understanding the What, How, and Why
+
+In our deep dive into Prompt Engineering, we'll explore an interactive Python script that embodies the principles of this concept.
+
+## Code Example: Interactive Quiz Game in Python
+**Filename:** `quiz_game_prompt_engineering.py`
+
+This Python script showcases a straightforward, yet engaging, interactive quiz game. It's a practical illustration of how to utilize prompt engineering within your applications.
+
+The game operates by asking the  a series of questions and then providing feedback based on the 's responses. Each question serves as a prompt, designed to guide the 's interaction within a command-line application.
+
+### When to Use This Code
+Consider using this script as a foundational piece whenever you're building a command-line application that requires  interaction. It's an excellent way to learn about prompt engineering and how you can apply it to create more intuitive and -friendly applications.
+
+### What You'll Learn
+By studying this code example, you'll gain a deeper understanding of:
+- How to construct prompts for  interaction
+- The way feedback mechanisms can be integrated based on  responses
+- The application of prompt engineering in real-world programming scenarios
+
+Understanding and applying these principles will allow you to create more interactive and engaging command-line applications.
+# Language: Python
+# Section: Prompt Engineering – A Deep Dive
+
+python
+# Importing required module
+import random
+
+# A list of questions for the quiz
+questions = [
+    "What is the capital of Australia?",
+    "What is the capital of USA?",
+    "What is the capital of India?",
+]
+
+# A list of answers for the questions
+answers = [
+    "Canberra",
+    "Washington D.C.",
+    "New Delhi",
+]
+
+def quiz_game():
+    # Initialize score to 0
+    score = 0
+
+    # Loop through each question
+    for i in range(len(questions)):
+        # Display question and wait for 's answer
+        print(questions[i])
+        answer = input("Your answer: ")
+
+        # Check if answer is correct
+        if answer.lower() == answers[i].lower():
+            # If correct, increase score by 1
+            score += 1
+            print("Correct!")
+        else:
+            # If incorrect, tell  the correct answer
+            print("Incorrect. The correct answer is " + answers[i])
+
+    # Once all questions are asked, display 's final score
+    print("Your final score is " + str(score) + "/" + str(len(questions)))
+
+# Call the function to start the quiz game
+quiz_game()

@@ -1,0 +1,70 @@
+# # Understanding Context in AI Responses with Python
+
+This blog post will help you understand how context can influence the responses of an AI model. We use a Python script (`context_in_prompts.py`) to illustrate this concept.
+
+The script makes use of the GPT-2 model from the Transformers library. It's designed to generate a response based on a given context and prompt. 
+
+## When to Use This Script
+
+You can use this code when you want to illustrate how changing the context can alter the response of an AI model, specifically GPT-2. This can be particularly useful when trying to generate more accurate or relevant responses from the model.
+
+## Code Description
+
+The script operates in the following sequence:
+
+1. It takes a context and a prompt as input. In our example, the context is a statement expressing a preference for jazz music, and the prompt is a request to play some music.
+2. It encodes both the context and the prompt.
+3. These encoded inputs are then concatenated and fed to the GPT-2 model.
+4. The model generates a response based on the combined input.
+5. Finally, the script decodes the model's response and prints it to the console.
+
+This process demonstrates how the context (preference for jazz music) can shape the AI's response to a given prompt (request to play music).
+
+Here's the Python code that carries out these steps:
+
+```python
+# context_in_prompts.py
+# ...
+```
+
+Remember: Understanding the role of context can be crucial to harnessing the full potential of AI models like GPT-2. Happy coding!
+# Language: Python
+# Section: Introduction and Overview
+
+python
+# We'll use the Python library called transformers for handling language models
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+def get_model_response(prompt, context):
+    """
+    This function receives a prompt and a context and returns a response from the model.
+    """
+    # Initialize the tokenizer and the model
+    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    model = GPT2LMHeadModel.from_pretrained('gpt2')
+
+    # We encode the context first
+    context_encoded = tokenizer.encode(context, return_tensors='pt')
+
+    # Then we encode the prompt
+    prompt_encoded = tokenizer.encode(prompt, return_tensors='pt')
+
+    # We concatenate context and prompt
+    input_id = torch.cat([context_encoded, prompt_encoded], dim=-1)
+
+    # Generate a response from the model
+    output = model.generate(input_id, max_length=200, temperature=0.7, pad_token_id=tokenizer.eos_token_id)
+    
+    # Decode the output
+    response = tokenizer.decode(output[:, input_id.shape[-1]:][0], skip_special_tokens=True)
+    
+    return response
+
+# Context
+context = 'I love jazz music.'
+# Prompt
+prompt = 'Play some music.'
+
+# Get model response
+response = get_model_response(prompt, context)
+print(response)

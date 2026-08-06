@@ -1,0 +1,69 @@
+# ---
+## Conclusion and Next Steps
+
+In our journey to understanding AI context-based interactions, we've covered a lot of ground. As a final illustration, let's review a practical Python code example from our study.
+
+### Python Code Example: `ai_contextual_interaction.py`
+
+This script initializes a GPT-2 model along with a tokenizer. It's purpose is to define a function that allows interaction with the model. 
+
+Here's a brief overview of what the function does:
+
+1. **Receives a prompt and conversation history**: The function acts on an input prompt and the history of the conversation so far.
+
+2. **Generates a model response**: Using the GPT-2 model, the function generates a relevant response to the given prompt.
+
+3. **Updates conversation history**: The generated response is then added to the conversation history.
+
+4. **Returns response and updated history**: Finally, the function gives back the response and the updated conversation history.
+
+The beauty of this function is that it utilizes the conversation history to provide context for the model's responses. In other words, it makes sure that the AI's responses are not just based on the current prompt, but also take into account prior interactions.
+
+This code can be extremely useful when working on projects that involve generating AI responses in a conversational context. The model's ability to refer to past interactions allows it to provide more relevant and context-aware responses.
+
+---
+
+I hope this information is beneficial to you. In the next steps of your AI development journey, you might want to consider how you can further enhance the contextual awareness of your AI models. 
+
+Happy coding!
+# Language: Python
+# Section: Conclusion and Next Steps
+
+python
+# Importing the required libraries
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+# Initializing the tokenizer and model
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model = GPT2LMHeadModel.from_pretrained("gpt2")
+
+# Defining a function to interact with the AI model
+def interact_with_model(prompt, conversation_history):
+  ''' This function takes a prompt and conversation history, generates a response using the AI model,
+  adds the response to the conversation history, and then returns the response and updated history. '''
+
+  # Encoding the conversation history and the prompt
+  encoded_input = tokenizer.encode(conversation_history + prompt, return_tensors='pt')
+
+  # Generating a response using the model
+  output = model.generate(encoded_input, max_length=800, pad_token_id=50256)
+
+  # Decoding the response
+  response = tokenizer.decode(output[:, encoded_input.shape[-1]:][0], skip_special_tokens=True)
+
+  # Adding the prompt and response to the conversation history
+  conversation_history += prompt + response
+  
+  return response, conversation_history
+
+# Initial conversation history
+conversation_history = ""
+
+# Interacting with the model
+prompt = "Tell me a joke."
+response, conversation_history = interact_with_model(prompt, conversation_history)
+print("AI:", response)
+
+prompt = "Tell me another joke."
+response, conversation_history = interact_with_model(prompt, conversation_history)
+print("AI:", response)

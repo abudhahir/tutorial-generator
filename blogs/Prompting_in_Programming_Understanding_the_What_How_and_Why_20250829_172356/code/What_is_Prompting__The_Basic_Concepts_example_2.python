@@ -1,0 +1,64 @@
+# ---
+
+### Code Example: `guess_the_number.py` in Python
+
+The following Python script, `guess_the_number.py`, illustrates a simple, text-based game. In this game, the  is prompted to guess a number between 1 and 10. The 's input is validated, and they receive feedback based on their guess. The game keeps going until the  correctly guesses the number.
+
+This interactive script is a practical example of how prompting works in programming. It's particularly useful for those looking to understand how to solicit, validate, and respond to  input in Python.
+
+Here's what the code does:
+
+- It prompts the  to guess a number between 1 and 10.
+- It validates the 's input, ensuring it's a valid number within the specified range.
+- It provides appropriate feedback based on the 's guess.
+- It continues the loop until the  correctly guesses the number.
+
+This game is a simple, yet effective way to understand the concept of prompting in programming. By adjusting the code, you can modify the range of numbers or change the feedback responses, further enhancing your understanding of how prompting works.
+
+---
+
+Please note: This example is part of our comprehensive guide, **"Prompting in Programming: Understanding the What, How, and Why"**. If you're new to prompting or looking to deepen your understanding, we encourage you to explore the full guide.
+
+---
+# Language: Python
+# Section: What is Prompting? – The Basic Concepts
+
+python
+# Import the necessary library
+import random
+
+def main():
+    # Introduction to the game
+    print("Welcome to the Guess the Number game!")
+    
+    # Generate a random number between 1 and 10
+    number_to_guess = random.randint(1, 10)
+    
+    # Initialize the number of attempts
+    attempts = 0
+    
+    while True:
+        # Prompt the  for their guess
+        _guess = input("Please guess a number between 1 and 10: ")
+        
+        # Try to convert the 's guess to an integer
+        try:
+            _guess = int(_guess)
+        except ValueError:
+            print("That's not a valid guess. Please enter a number.")
+            continue
+        
+        # Increase the number of attempts
+        attempts += 1
+        
+        # Check if the 's guess is correct
+        if _guess == number_to_guess:
+            print(f"Congratulations! You guessed the number in {attempts} attempts.")
+            break
+        elif _guess  number_to_guess:
+            print("Too low! Try again.")
+        else:
+            print("Too high! Try again.")
+
+if __name__ == "__main__":
+    main()

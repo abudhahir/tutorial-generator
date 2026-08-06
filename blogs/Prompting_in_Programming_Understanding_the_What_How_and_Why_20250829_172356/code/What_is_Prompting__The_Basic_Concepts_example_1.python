@@ -1,0 +1,40 @@
+# ## What is Prompting? – The Basic Concepts
+
+In our exploration of prompting in programming, we'll look at a simple yet effective illustration. The code example below, written in Python, demonstrates how prompting can be utilized to solicit  input.
+
+**Filename:** `greetings.py`
+
+This Python script performs two basic tasks:
+
+1. It first uses Python's built-in `input` function to prompt the  to enter their name.
+2. It then prints a personalized greeting using the entered name. 
+
+The greeting is dynamically generated with an `f-string`, a feature in Python that allows us to insert the value of the `name` variable directly into the string.
+
+This type of prompting is especially useful when you want to personalize  interactions or collect -specific data.
+
+Here's the Python code in action:
+
+```python
+name = input("Please enter your name: ")
+print(f"Hello, {name}!")
+```
+
+Remember, clear and concise prompts are key to -friendly programming. They guide s through the steps necessary to use the software effectively, enhancing the overall  experience.
+# Language: Python
+# Section: What is Prompting? – The Basic Concepts
+
+python
+# Start by defining the main function
+def main():
+    # Use the built-in input function to prompt the  for their name
+    # The argument to input is the prompt that will be displayed
+    name = input("Please enter your name: ")
+
+    # Use the captured name to print a greeting.
+    # The f-string syntax ({}) lets us include the value of variables in the string.
+    print(f"Hello, {name}! Nice to meet you.")
+
+# Python convention is to use a "main guard" - this code will only run if the file is executed directly
+if __name__ == "__main__":
+    main()

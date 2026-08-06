@@ -1,0 +1,38 @@
+# # Prompting in Programming: Understanding the What, How, and Why
+
+In the realm of programming, prompting plays a crucial role in interacting with the , collecting data, and personalizing the  experience. A fine example of this can be seen in a simple Python program that prompts the  for their name and then uses that input to print a personalized greeting. 
+
+## Code Example: Python Greeting Prompt
+
+This Python snippet, saved as `prompt_greeting.py`, is a straightforward demonstration of how prompting works in programming. 
+
+Here's what the code does:
+
+1. It uses the `input()` function to prompt the  for their name.
+2. It then prints a personalized greeting using the name provided by the . 
+
+This code is particularly useful when you want to interact with the  and tailor the program's response based on  input. It provides a basic understanding of how prompting functions in Python and can serve as a stepping stone for more complex -input scenarios.
+
+```python
+# File: prompt_greeting.py
+
+name = input("Please enter your name: ")
+print(f"Hello, {name}!")
+```
+
+This example is essential for beginners who are learning the basics of  interaction in Python programming. It sets the groundwork for further learning about data collection, response personalization, and  interaction models in programming.
+# Language: Python
+# Section: Prompt Engineering – A Deep Dive
+
+python
+# Program starts here
+def main():
+    # Prompt  for their name using the input() function
+    _name = input("What is your name? ")
+
+    # Use the provided name to print a personalized greeting
+    print(f"Hello, {_name}! Nice to meet you.")
+
+# Call the main function
+if __name__ == "__main__":
+    main()

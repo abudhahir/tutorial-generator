@@ -1,0 +1,21 @@
+---
+description: tech stack used in this project
+globs:
+alwaysApply: true
+---
+This is a multi-agent agentic ai project.
+
+# Tech Stack
+- Python 
+- Langgraph, Langchain
+- FastMCP
+- FastAPI, httpx - If needed
+- chromadb for rag
+- Pydantic and other modern validation frameworks
+- api testing snippets with http client
+- should follow industry best practices
+- multiple options for setup . uv, pip, python, etc
+
+# References and Documentation
+Always use context7 mcp tool for consulting the latest documentation on any related tech.
+

@@ -1,0 +1,39 @@
+# # Prompting in Programming: Understanding the What, How, and Why
+
+In the section **Techniques in Prompt Engineering – Unleashing the Power**, we discuss various strategies to effectively implement prompts in your code. A key technique is demonstrated in the following Python script, `prompt_demo.py`.
+
+## `prompt_demo.py` - A Simple Python Prompting Example
+
+This Python script is a simple yet powerful illustration of prompting in a command-line interface. It performs the following tasks:
+
+1. Asks the  for their name.
+2. Asks the  for their favorite color.
+3. Prints a personalized greeting based on the provided responses.
+
+When should you use this code? In any scenario where you need to interact with the  via the command-line. This could be a simple data collection script, a command-line game, or even a small part of a larger software application.
+
+```python
+# Filename: prompt_demo.py
+
+# Your code here
+```
+
+This example is designed for programmers who are new to prompting in Python or for those looking to deepen their understanding of the concept. It not only demonstrates the "how" but also provides context on "when" and "why" to use prompts in your programming journey.
+# Language: Python
+# Section: Techniques in Prompt Engineering – Unleashing the Power
+
+python
+# Start by defining the main function
+def main():
+    # Use the built-in input function to ask the  for their name
+    name = input("What is your name? ")
+
+    # Use the built-in input function again to ask the  for their favorite color
+    color = input("What is your favorite color? ")
+
+    # Print a personalized greeting to the  based on their input
+    print(f"Hello, {name}! Your favorite color is {color}.")
+
+# Make sure the script only runs when executed directly (not when imported as a module)
+if __name__ == "__main__":
+    main()

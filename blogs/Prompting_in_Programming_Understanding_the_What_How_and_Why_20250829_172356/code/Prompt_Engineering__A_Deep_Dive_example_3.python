@@ -1,0 +1,68 @@
+# # Prompting in Programming: Understanding the What, How, and Why
+## Prompt Engineering – A Deep Dive
+
+In this section, we're going to explore the concept of **adaptive prompting** with a practical code example written in Python. 
+
+### Code Example: Adaptive Quiz Game
+
+The script named `adaptive_prompt_quiz.py` implements an interactive quiz game that personalizes the experience based on the participant's responses. The uniqueness of this code lies in its ability to adapt the next question based on the answer given to the current one. 
+
+Here's a brief rundown of how it works:
+
+- The script presents a question to the .
+- It checks the 's answer against a pre-defined set of valid responses.
+- If the answer matches, a follow-up question is randomly selected from a corresponding list.
+- This process continues, creating a dynamic, adaptive quiz experience.
+
+This code is most useful when you want to create interactive and personalized experiences for your s. Whether you are developing a quiz app, a tutorial program, or a customer engagement tool, adaptive prompting can make your application more engaging and -friendly.
+
+```python
+# Filename: adaptive_prompt_quiz.py
+# Add the script code here
+```
+
+Remember, the concept of adaptive prompting is not limited to quizzes. It can be used in any situation where the 's response needs to be tailored based on  input. This powerful concept can enhance  experience and engagement across a wide range of applications.
+# Language: Python
+# Section: Prompt Engineering – A Deep Dive
+
+python
+# Import the necessary modules
+import random
+
+# This is a list of all possible questions
+questions = [
+    {
+        "question": "Do you like to read books?",
+        "answers": ["Yes", "No"],
+        "follow_ups": [
+            ["What is your favorite book?", "Who is your favorite author?"],
+            ["Why don't you like reading?", "What do you prefer to do instead?"]
+        ]
+    },
+    {
+        "question": "Do you like to watch movies?",
+        "answers": ["Yes", "No"],
+        "follow_ups": [
+            ["What is your favorite movie?", "Who is your favorite actor?"],
+            ["Why don't you like watching movies?", "What do you prefer to do instead?"]
+        ]
+    }
+]
+
+# This is the function that will conduct the quiz
+def run_quiz():
+    for question in questions:
+        print(question["question"])
+        answer = input("Enter your answer: ")
+        
+        # The program adapts the prompt based on the 's answer
+        if answer in question["answers"]:
+            index = question["answers"].index(answer)
+            follow_up = random.choice(question["follow_ups"][index])
+            print(follow_up)
+            input("Enter your answer: ")
+        else:
+            print("Invalid answer.")
+
+# Run the quiz
+run_quiz()
