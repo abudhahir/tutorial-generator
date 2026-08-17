@@ -5,6 +5,7 @@ import pytest
 from src.agents.runtime import AgentRuntime
 from src.agents.base_agent import BaseAgent
 from src.agents.agent_orchestrator import AgentOrchestrator
+from src.core.config import settings
 
 
 def test_runtime_names_are_stable_for_cli_and_sessions():
@@ -43,6 +44,49 @@ def test_base_agent_accepts_the_selected_runtime():
     )
 
     assert agent.agent_runtime is AgentRuntime.OPENAI
+
+
+def test_langchain_agent_can_select_deepseek_model():
+    agent = StubAgent(
+        name="Stub",
+        description="test agent",
+        use_deepseek=True,
+    )
+
+    assert agent.agent_runtime is AgentRuntime.LANGCHAIN
+    assert agent.model_name == settings.default_deepseek_model
+
+
+def test_langchain_deepseek_uses_openai_compatible_endpoint(monkeypatch):
+    class ConfiguredAgent(BaseAgent):
+        async def process(self, input_data, context=None):
+            return input_data
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "dummy")
+    agent = ConfiguredAgent(
+        name="Stub",
+        description="test agent",
+        use_deepseek=True,
+    )
+
+    assert agent.llm.model_name == settings.default_deepseek_model
+    assert agent.llm.openai_api_base == settings.deepseek_base_url
+
+
+def test_orchestrator_assigns_deepseek_backend_to_every_langchain_node(monkeypatch):
+    monkeypatch.setattr(settings, "deepseek_api_key", "dummy")
+    orchestrator = AgentOrchestrator(use_deepseek=True, streaming=False)
+
+    agents = (
+        orchestrator.research_agent,
+        orchestrator.content_agent,
+        orchestrator.code_agent,
+        orchestrator.formatting_agent,
+        orchestrator.review_agent,
+    )
+
+    assert [agent.use_deepseek for agent in agents] == [True] * 5
+    assert [agent.model_name for agent in agents] == [settings.default_deepseek_model] * 5
 
 
 def test_orchestrator_assigns_anthropic_runtime_to_every_node_agent():

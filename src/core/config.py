@@ -13,8 +13,9 @@ class Settings(BaseSettings):
     # API Keys
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
     anthropic_api_key: Optional[str] = Field(None, env="ANTHROPIC_API_KEY")
+    deepseek_api_key: Optional[str] = Field(None, env="DEEPSEEK_API_KEY")
 
-    @field_validator("openai_api_key", "anthropic_api_key", mode="before")
+    @field_validator("openai_api_key", "anthropic_api_key", "deepseek_api_key", mode="before")
     @classmethod
     def strip_api_keys(cls, v: Optional[str]) -> Optional[str]:
         return v.strip() if v else v
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
     # Blog Generation Settings
     default_model: str = Field("gpt-4", env="DEFAULT_MODEL")
     default_anthropic_model: str = Field("claude-opus-5", env="DEFAULT_ANTHROPIC_MODEL")
+    default_deepseek_model: str = Field("deepseek-v4-flash", env="DEFAULT_DEEPSEEK_MODEL")
+    deepseek_base_url: str = Field("https://api.deepseek.com", env="DEEPSEEK_BASE_URL")
     default_temperature: float = Field(0.7, env="DEFAULT_TEMPERATURE")
     max_tokens: int = Field(4000, env="MAX_TOKENS")
     

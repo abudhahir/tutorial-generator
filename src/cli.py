@@ -335,7 +335,7 @@ def generate_tech_blog(
     include_diagrams: bool = typer.Option(False, "--diagrams/--no-diagrams", help="Include diagrams"),
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
     custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
-    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
+    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, deepseek, lm-studio, or ollama", case_sensitive=False),
     agent_runtime: str = typer.Option("langchain", "--agent-runtime", help="Agent SDK track: langchain, openai, or anthropic", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
@@ -391,15 +391,18 @@ def generate_tech_blog(
     # Resolve backend selection
     use_ollama = False
     use_lm_studio = False
+    use_deepseek = False
     if backend:
         backend_lc = backend.lower()
-        if backend_lc not in ["openai", "lm-studio", "ollama"]:
-            console.print("[red]Invalid --backend. Use: openai, lm-studio, or ollama[/red]")
+        if backend_lc not in ["openai", "deepseek", "lm-studio", "ollama"]:
+            console.print("[red]Invalid --backend. Use: openai, deepseek, lm-studio, or ollama[/red]")
             raise typer.Exit(code=1)
         if backend_lc == "lm-studio":
             use_lm_studio = True
         elif backend_lc == "ollama":
             use_ollama = True
+        elif backend_lc == "deepseek":
+            use_deepseek = True
 
     # Store session parameters
     session_data = {
@@ -415,6 +418,7 @@ def generate_tech_blog(
         "output_file": output_file,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
+        "use_deepseek": use_deepseek,
         "agent_runtime": agent_runtime,
         "timestamp": None
     }
@@ -435,7 +439,8 @@ def generate_tech_blog(
         output_file=output_file,
         use_ollama=use_ollama,
         use_lm_studio=use_lm_studio,
-        agent_runtime=agent_runtime
+        agent_runtime=agent_runtime,
+        use_deepseek=use_deepseek
     ))
 
 
@@ -451,7 +456,7 @@ def generate_tutorial(
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
     custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
-    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
+    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, deepseek, lm-studio, or ollama", case_sensitive=False),
     use_ollama: bool = typer.Option(None, "--ollama", help="Use Ollama for local testing (will prompt if not provided)"),
     ollama_base_url: Optional[str] = typer.Option(None, "--ollama-url", help="Ollama base URL (default: http://localhost:11434)"),
     ollama_model: Optional[str] = typer.Option(None, "--ollama-model", help="Ollama model to use (will prompt if not provided)"),
@@ -517,11 +522,13 @@ def generate_tutorial(
     if include_code is None:
         include_code = rich_confirm("Include code examples?", default=True)
     
-    # Backend override (openai, lm-studio, ollama)
+    use_deepseek = False
+
+    # Backend override (openai, deepseek, lm-studio, ollama)
     if backend:
         backend_lc = backend.lower()
-        if backend_lc not in ["openai", "lm-studio", "ollama"]:
-            console.print("[red]Invalid --backend. Use: openai, lm-studio, or ollama[/red]")
+        if backend_lc not in ["openai", "deepseek", "lm-studio", "ollama"]:
+            console.print("[red]Invalid --backend. Use: openai, deepseek, lm-studio, or ollama[/red]")
             raise typer.Exit(code=1)
         if backend_lc == "openai":
             use_ollama = False
@@ -531,6 +538,10 @@ def generate_tutorial(
             use_ollama = False
         elif backend_lc == "ollama":
             use_ollama = True
+            use_lm_studio = False
+        elif backend_lc == "deepseek":
+            use_deepseek = True
+            use_ollama = False
             use_lm_studio = False
 
     # Handle local model selection logic when no backend provided
@@ -576,6 +587,7 @@ def generate_tutorial(
         "use_lm_studio": use_lm_studio,
         "lm_studio_base_url": lm_studio_base_url,
         "lm_studio_model": lm_studio_model,
+        "use_deepseek": use_deepseek,
         "streaming": streaming,
         "stream_mode": stream_mode,
         "agent_runtime": agent_runtime,
@@ -586,7 +598,7 @@ def generate_tutorial(
     _save_session_file(session_data)
     
     # Display configuration
-    backend_name = "lm-studio" if use_lm_studio else ("ollama" if use_ollama else "openai")
+    backend_name = "deepseek" if use_deepseek else ("lm-studio" if use_lm_studio else ("ollama" if use_ollama else "openai"))
     show_config_summary({
         "topic": topic,
         "goals": goals,
@@ -629,6 +641,7 @@ def generate_tutorial(
         use_lm_studio=use_lm_studio,
         lm_studio_base_url=lm_studio_base_url,
         lm_studio_model=lm_studio_model,
+        use_deepseek=use_deepseek,
         streaming=streaming,
         stream_mode=stream_mode,
         agent_runtime=agent_runtime
@@ -646,7 +659,7 @@ def generate_comparison(
     include_code: bool = typer.Option(True, "--code/--no-code", help="Include code examples"),
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
     custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
-    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
+    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, deepseek, lm-studio, or ollama", case_sensitive=False),
     agent_runtime: str = typer.Option("langchain", "--agent-runtime", help="Agent SDK track: langchain, openai, or anthropic", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
@@ -697,15 +710,18 @@ def generate_comparison(
     # Resolve backend selection
     use_ollama = False
     use_lm_studio = False
+    use_deepseek = False
     if backend:
         backend_lc = backend.lower()
-        if backend_lc not in ["openai", "lm-studio", "ollama"]:
-            console.print("[red]Invalid --backend. Use: openai, lm-studio, or ollama[/red]")
+        if backend_lc not in ["openai", "deepseek", "lm-studio", "ollama"]:
+            console.print("[red]Invalid --backend. Use: openai, deepseek, lm-studio, or ollama[/red]")
             raise typer.Exit(code=1)
         if backend_lc == "lm-studio":
             use_lm_studio = True
         elif backend_lc == "ollama":
             use_ollama = True
+        elif backend_lc == "deepseek":
+            use_deepseek = True
 
     # Store session parameters
     session_data = {
@@ -722,6 +738,7 @@ def generate_comparison(
         "output_file": output_file,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
+        "use_deepseek": use_deepseek,
         "agent_runtime": agent_runtime,
         "timestamp": None
     }
@@ -729,7 +746,7 @@ def generate_comparison(
     # Save session file
     _save_session_file(session_data)
     
-    backend_name = "lm-studio" if use_lm_studio else ("ollama" if use_ollama else "openai")
+    backend_name = "deepseek" if use_deepseek else ("lm-studio" if use_lm_studio else ("ollama" if use_ollama else "openai"))
     show_config_summary({
         "topic": topic,
         "items": items,
@@ -755,6 +772,7 @@ def generate_comparison(
         output_file=output_file,
         use_ollama=use_ollama,
         use_lm_studio=use_lm_studio,
+        use_deepseek=use_deepseek,
         agent_runtime=agent_runtime
     ))
 
@@ -836,6 +854,7 @@ def status():
         config_table.add_row("Template Directory", status_info["template_directory"])
         config_table.add_row("ChromaDB Host", status_info["chroma_host"])
         config_table.add_row("Default Model", status_info["default_model"])
+        config_table.add_row("Default DeepSeek Model", status_info.get("default_deepseek_model", "deepseek-v4-flash"))
         
         console.print(config_table)
         
@@ -847,7 +866,7 @@ def status():
 def resume_generation(
     session_file: str = typer.Argument(..., help="Path to the session file to resume from"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
-    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
+    backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, deepseek, lm-studio, or ollama", case_sensitive=False),
     openai: bool = typer.Option(False, "--openai", help="Force OpenAI backend (disables LM Studio and Ollama)"),
     lm_studio: Optional[bool] = typer.Option(None, "--lm-studio/--no-lm-studio", help="Enable or disable LM Studio for this resume"),
     ollama: Optional[bool] = typer.Option(None, "--ollama/--no-ollama", help="Enable or disable Ollama for this resume"),
@@ -878,29 +897,39 @@ def resume_generation(
         # Allow backend and streaming overrides at resume time
         if backend:
             backend_lc = backend.lower()
-            if backend_lc not in ["openai", "lm-studio", "ollama"]:
-                console.print("[red]Invalid --backend. Use: openai, lm-studio, or ollama[/red]")
+            if backend_lc not in ["openai", "deepseek", "lm-studio", "ollama"]:
+                console.print("[red]Invalid --backend. Use: openai, deepseek, lm-studio, or ollama[/red]")
                 raise typer.Exit(code=1)
             if backend_lc == "openai":
+                session_data["use_lm_studio"] = False
+                session_data["use_ollama"] = False
+                session_data["use_deepseek"] = False
+            elif backend_lc == "deepseek":
+                session_data["use_deepseek"] = True
                 session_data["use_lm_studio"] = False
                 session_data["use_ollama"] = False
             elif backend_lc == "lm-studio":
                 session_data["use_lm_studio"] = True
                 session_data["use_ollama"] = False
+                session_data["use_deepseek"] = False
             elif backend_lc == "ollama":
                 session_data["use_ollama"] = True
                 session_data["use_lm_studio"] = False
+                session_data["use_deepseek"] = False
         if openai:
             session_data["use_lm_studio"] = False
             session_data["use_ollama"] = False
+            session_data["use_deepseek"] = False
         if lm_studio is not None:
             session_data["use_lm_studio"] = lm_studio
             if lm_studio:
                 session_data["use_ollama"] = False
+                session_data["use_deepseek"] = False
         if ollama is not None:
             session_data["use_ollama"] = ollama
             if ollama:
                 session_data["use_lm_studio"] = False
+                session_data["use_deepseek"] = False
         if streaming is not None:
             session_data["streaming"] = streaming
         if stream_mode is not None:
@@ -909,8 +938,9 @@ def resume_generation(
         # Show a quick summary of effective config when verbose
         if verbose:
             backend = (
-                "LM Studio" if session_data.get("use_lm_studio") else
-                ("Ollama" if session_data.get("use_ollama") else "OpenAI")
+                "DeepSeek" if session_data.get("use_deepseek") else
+                ("LM Studio" if session_data.get("use_lm_studio") else
+                ("Ollama" if session_data.get("use_ollama") else "OpenAI"))
             )
             console.print(Panel(
                 f"[bold blue]⚙️ Effective Resume Config[/bold blue]\n"
@@ -1039,6 +1069,7 @@ async def _generate_blog_from_session(session_data: Dict[str, Any], verbose: boo
                 custom_instructions=session_data.get("custom_instructions"),
                 output_file=session_data.get("output_file"),
                 verbose=verbose,
+                use_deepseek=session_data.get("use_deepseek", False),
                 agent_runtime=session_data.get("agent_runtime", "langchain")
             )
         elif blog_type == "tutorial":
@@ -1063,6 +1094,7 @@ async def _generate_blog_from_session(session_data: Dict[str, Any], verbose: boo
                 lm_studio_model=session_data.get("lm_studio_model"),
                 streaming=session_data.get("streaming", True),
                 stream_mode=session_data.get("stream_mode", "updates"),
+                use_deepseek=session_data.get("use_deepseek", False),
                 agent_runtime=session_data.get("agent_runtime", "langchain")
             )
         elif blog_type == "comparison":
@@ -1079,6 +1111,7 @@ async def _generate_blog_from_session(session_data: Dict[str, Any], verbose: boo
                 custom_instructions=session_data.get("custom_instructions"),
                 output_file=session_data.get("output_file"),
                 verbose=verbose,
+                use_deepseek=session_data.get("use_deepseek", False),
                 agent_runtime=session_data.get("agent_runtime", "langchain")
             )
         else:
@@ -1109,6 +1142,7 @@ async def _generate_blog(
     use_lm_studio: bool = False,
     lm_studio_base_url: Optional[str] = None,
     lm_studio_model: Optional[str] = None,
+    use_deepseek: bool = False,
     streaming: bool = True,
     stream_mode: str = "updates",
     agent_runtime: str = "langchain"
@@ -1126,6 +1160,7 @@ async def _generate_blog(
             use_lm_studio=use_lm_studio,
             lm_studio_base_url=lm_studio_base_url,
             lm_studio_model=lm_studio_model,
+            use_deepseek=use_deepseek,
             streaming=streaming,
             stream_mode=stream_mode,
             agent_runtime=agent_runtime

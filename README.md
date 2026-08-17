@@ -159,6 +159,9 @@ python -m src.cli generate-tutorial --backend lm-studio --lm-studio-model local-
 
 # Use local Ollama backend
 python -m src.cli generate-tutorial --backend ollama --ollama-model gemma3:4b --verbose
+
+# Use DeepSeek through the LangChain track
+python -m src.cli generate-tutorial --backend deepseek --verbose
 ```
 
 ### Session Management
@@ -186,6 +189,7 @@ python -m src.cli delete-session my_topic_1234567890.json --force
 You can select the LLM backend explicitly with `--backend` on both generation and resume commands:
 
 - `--backend openai` (default if neither local backend is selected)
+- `--backend deepseek` (LangChain with DeepSeek's OpenAI-compatible API)
 - `--backend lm-studio`
 - `--backend ollama`
 
@@ -200,6 +204,9 @@ python -m src.cli generate-tutorial --topic "Docker Basics" --goal "Containerize
 
 # Use Ollama explicitly
 python -m src.cli generate-tutorial --topic "Agents" --goal "Implement" --backend ollama --ollama-model gemma3:4b --verbose
+
+# Use DeepSeek explicitly
+python -m src.cli generate-tutorial --topic "Agents" --goal "Implement" --backend deepseek --verbose
 ```
 
 Note: Streaming visualization panels appear when `--verbose` is enabled. Without verbose mode, the CLI runs quietly and prints a summary on completion.
@@ -210,11 +217,14 @@ The application can be configured through environment variables:
 
 - `OPENAI_API_KEY`: Your OpenAI API key
 - `ANTHROPIC_API_KEY`: Your Anthropic API key (optional)
+- `DEEPSEEK_API_KEY`: Your DeepSeek API key (required when using `--backend deepseek`)
 - `CHROMA_HOST`: ChromaDB host (default: localhost)
 - `CHROMA_PORT`: ChromaDB port (default: 8000)
 - `LOG_LEVEL`: Logging level (default: INFO)
 - `DEFAULT_OLLAMA_MODEL`: Default Ollama model for local LLM (default: gemma3:4b)
 - `OLLAMA_BASE_URL`: Ollama server URL (default: http://localhost:11434)
+- `DEFAULT_DEEPSEEK_MODEL`: DeepSeek model used by the LangChain backend (default: `deepseek-v4-flash`)
+- `DEEPSEEK_BASE_URL`: DeepSeek-compatible API endpoint (default: `https://api.deepseek.com`)
 
 ## 🚀 MCP Integration
 

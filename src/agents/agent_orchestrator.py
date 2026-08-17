@@ -41,7 +41,7 @@ AgentState = Dict[str, Any]
 class AgentOrchestrator:
     """Orchestrates the multi-agent workflow for blog generation."""
     
-    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN, **kwargs):
+    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, use_deepseek: bool = False, deepseek_base_url: Optional[str] = None, deepseek_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN, **kwargs):
         """Initialize the agent orchestrator."""
         self.verbose = verbose
         self.use_ollama = use_ollama
@@ -49,9 +49,16 @@ class AgentOrchestrator:
         self.use_lm_studio = use_lm_studio
         self.lm_studio_base_url = lm_studio_base_url
         self.lm_studio_model = lm_studio_model
+        self.use_deepseek = use_deepseek
+        self.deepseek_base_url = deepseek_base_url
+        self.deepseek_model = deepseek_model
         self.streaming = streaming
         self.stream_mode = stream_mode
         self.agent_runtime = agent_runtime if isinstance(agent_runtime, AgentRuntime) else AgentRuntime.parse(agent_runtime)
+        if use_deepseek and self.agent_runtime is not AgentRuntime.LANGCHAIN:
+            raise ValueError("DeepSeek backend is currently supported by the LangChain track only")
+        if use_deepseek and (use_ollama or use_lm_studio):
+            raise ValueError("DeepSeek cannot be combined with Ollama or LM Studio")
         
         # Initialize Rich console for beautiful output
         self.console = Console()
@@ -104,6 +111,9 @@ class AgentOrchestrator:
             "use_lm_studio": use_lm_studio,
             "lm_studio_base_url": lm_studio_base_url,
             "lm_studio_model": lm_studio_model,
+            "use_deepseek": use_deepseek,
+            "deepseek_base_url": deepseek_base_url,
+            "deepseek_model": deepseek_model,
             "streaming": streaming,
             "stream_mode": stream_mode,
             "agent_runtime": self.agent_runtime,
@@ -790,6 +800,7 @@ class AgentOrchestrator:
             "workflow_compiled": self.workflow is not None,
             "settings": {
                 "default_model": settings.default_model,
+                "default_deepseek_model": settings.default_deepseek_model,
                 "default_temperature": settings.default_temperature,
                 "max_tokens": settings.max_tokens,
                 "agent_runtime": self.agent_runtime.value,

@@ -215,6 +215,9 @@ class BaseAgent(ABC):
         use_lm_studio: bool = False,
         lm_studio_base_url: Optional[str] = None,
         lm_studio_model: Optional[str] = None,
+        use_deepseek: bool = False,
+        deepseek_base_url: Optional[str] = None,
+        deepseek_model: Optional[str] = None,
         streaming: bool = True,  # Enable streaming by default
         stream_mode: str = "updates",  # Streaming mode for output
         request_timeout: float = 120.0,  # Max seconds to wait for LLM response
@@ -238,6 +241,9 @@ class BaseAgent(ABC):
         self.use_lm_studio = use_lm_studio
         self.lm_studio_base_url = lm_studio_base_url or "http://localhost:1234"
         self.lm_studio_model = lm_studio_model
+        self.use_deepseek = use_deepseek
+        self.deepseek_base_url = deepseek_base_url or settings.deepseek_base_url
+        self.deepseek_model = deepseek_model
         self.streaming = streaming
         self.stream_mode = stream_mode
         self.request_timeout = request_timeout
@@ -252,6 +258,8 @@ class BaseAgent(ABC):
             self.model_name = ollama_model or model_name or settings.default_ollama_model
         elif use_lm_studio:
             self.model_name = lm_studio_model or model_name or settings.default_lm_studio_model
+        elif use_deepseek:
+            self.model_name = deepseek_model or model_name or settings.default_deepseek_model
         elif self.agent_runtime is AgentRuntime.ANTHROPIC:
             self.model_name = model_name or settings.default_anthropic_model
         else:
@@ -301,6 +309,21 @@ class BaseAgent(ABC):
                     name=self.name,
                     instructions=self.get_system_prompt(),
                     model=self.model_name,
+                )
+                return
+
+            if self.use_deepseek:
+                if not settings.deepseek_api_key:
+                    raise ValueError("DeepSeek API key required when DeepSeek is enabled")
+                self.llm = ChatOpenAI(
+                    model=self.model_name,
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens,
+                    base_url=self.deepseek_base_url,
+                    api_key=settings.deepseek_api_key.strip(),
+                    verbose=self.verbose,
+                    streaming=self.streaming,
+                    timeout=self.request_timeout,
                 )
                 return
 
