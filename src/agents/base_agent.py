@@ -3,7 +3,7 @@ Base agent class for the multi-agent blog generation system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, AsyncGenerator
+from typing import Any, Callable, Dict, Optional, AsyncGenerator
 try:
     from langchain.schema import BaseMessage
 except ImportError:
@@ -23,12 +23,13 @@ from rich.spinner import Spinner
 
 from ..core.config import settings
 from .runtime import AgentRuntime
+from ..tui.events import EventKind, WorkflowEvent
 
 
 class StreamingCallbackHandler:
     """Custom callback handler for streaming LLM responses with agent context."""
     
-    def __init__(self, agent_name: str, console: Console, verbose: bool = False, stream_mode: str = "updates"):
+    def __init__(self, agent_name: str, console: Console, verbose: bool = False, stream_mode: str = "updates", event_sink: Optional[Callable[[WorkflowEvent], None]] = None, run_id: str = "", runtime: str = ""):
         self.agent_name = agent_name
         self.console = console
         self.verbose = verbose
@@ -42,6 +43,9 @@ class StreamingCallbackHandler:
         self.ignore_chat_model = False
         self.raise_error = False
         self.ignore_llm = False
+        self.event_sink = event_sink
+        self.run_id = run_id
+        self.runtime = runtime
     
     def on_llm_start(self, serialized, prompts, **kwargs):
         """Called when LLM starts generating."""
@@ -95,6 +99,14 @@ class StreamingCallbackHandler:
     
     def on_llm_new_token(self, token, **kwargs):
         """Called for each new token generated (LangChain compatibility)."""
+        if self.event_sink:
+            self.event_sink(WorkflowEvent(
+                kind=EventKind.NODE_OUTPUT,
+                run_id=self.run_id,
+                runtime=self.runtime,
+                node=self.agent_name,
+                text=str(token),
+            ))
         if self.verbose and self.live_display and self.streaming_panel:
             self.current_response += str(token)
             
@@ -222,6 +234,9 @@ class BaseAgent(ABC):
         stream_mode: str = "updates",  # Streaming mode for output
         request_timeout: float = 120.0,  # Max seconds to wait for LLM response
         agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN,
+        event_sink: Optional[Callable[[WorkflowEvent], None]] = None,
+        run_id: str = "",
+        runtime: str = "",
     ):
         """Initialize the base agent.
         
@@ -247,11 +262,14 @@ class BaseAgent(ABC):
         self.streaming = streaming
         self.stream_mode = stream_mode
         self.request_timeout = request_timeout
+        self.event_sink = event_sink
+        self.run_id = run_id
         self.agent_runtime = (
             agent_runtime
             if isinstance(agent_runtime, AgentRuntime)
             else AgentRuntime.parse(agent_runtime)
         )
+        self.runtime = runtime or self.agent_runtime.value
         
         # Set model name based on local model usage
         if use_ollama:
@@ -580,8 +598,15 @@ class BaseAgent(ABC):
         
         # Create streaming callback handler
         callbacks = None
-        if self.verbose and self.streaming:
-            callbacks = [StreamingCallbackHandler(self.name, self.console, self.verbose)]
+        if (self.verbose or self.event_sink) and self.streaming:
+            callbacks = [StreamingCallbackHandler(
+                self.name,
+                self.console,
+                self.verbose,
+                event_sink=self.event_sink,
+                run_id=self.run_id,
+                runtime=self.runtime,
+            )]
         
         # Handle different input formats for Ollama vs other models
         try:
@@ -700,8 +725,16 @@ class BaseAgent(ABC):
         
         # Create enhanced streaming callback handler
         callbacks = None
-        if self.verbose:
-            callbacks = [StreamingCallbackHandler(self.name, self.console, self.verbose, stream_mode)]
+        if self.verbose or self.event_sink:
+            callbacks = [StreamingCallbackHandler(
+                self.name,
+                self.console,
+                self.verbose,
+                stream_mode,
+                event_sink=self.event_sink,
+                run_id=self.run_id,
+                runtime=self.runtime,
+            )]
         
         try:
             if self.use_ollama and isinstance(messages, str):

@@ -108,6 +108,19 @@ The interactive CLI will prompt you for:
 - **Tone**: Professional, casual, humorous, etc.
 - **Output File**: Where to save the generated blog
 
+### Two-Pane Workflow TUI
+
+Launch the Textual interface when you want to configure a run once and watch the
+shared LangGraph workflow live:
+
+```bash
+python -m src.cli tui
+```
+
+The left pane selects the agent runtime (LangChain, OpenAI SDK, or Anthropic
+SDK), backend, and blog request. After starting a run, the form is locked while
+the right pane shows node progress, selected-node details, and streaming output.
+
 ### Basic Blog Generation
 
 ```python
