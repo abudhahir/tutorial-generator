@@ -26,16 +26,302 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .core.blog_generator import BlogGenerator
 from .core.models import BlogType
+from .cli_prompts import (
+    show_welcome_banner,
+    rich_select,
+    rich_text_prompt,
+    rich_goals_prompt,
+    rich_confirm,
+    rich_blog_type_select,
+    rich_backend_select,
+    show_config_summary,
+)
 
 # Initialize Typer app
 app = typer.Typer(
     name="im-poster",
     help="I'm Poster - Multi-Agent AI Blog Generator",
-    add_completion=False
+    add_completion=False,
+    invoke_without_command=True,
 )
 
 # Initialize Rich console
 console = Console()
+
+
+@app.callback(invoke_without_command=True)
+def default_interactive(ctx: typer.Context):
+    """Launch interactive mode when no subcommand is provided."""
+    if ctx.invoked_subcommand is not None:
+        return
+
+    show_welcome_banner()
+
+    blog_type = rich_blog_type_select()
+
+    if blog_type == "tech_blog":
+        _interactive_tech_blog()
+    elif blog_type == "tutorial":
+        _interactive_tutorial()
+    elif blog_type == "comparison":
+        _interactive_comparison()
+
+
+def _interactive_tech_blog():
+    """Full interactive flow for tech blog generation."""
+    topic = rich_text_prompt("Blog Topic", hint="e.g. Building Multi-Agent Systems with LangGraph")
+    goals = rich_goals_prompt("Blog Goals")
+    target_audience = rich_text_prompt("Target Audience", default="developers")
+    tone = rich_select("Tone", ["friendly", "professional", "humorous", "technical"], default="friendly")
+    length = rich_select("Length", ["short", "medium", "long"], default="medium")
+    include_code = rich_confirm("Include code examples?", default=True)
+    include_diagrams = rich_confirm("Include diagrams?", default=False)
+
+    backend_choice = rich_backend_select()
+    use_ollama = backend_choice == "ollama"
+    use_lm_studio = backend_choice == "lm-studio"
+
+    custom_instructions = rich_text_prompt("Custom instructions (optional)", default="")
+    output_file = rich_text_prompt("Output filename (optional, leave blank for auto)", default="")
+
+    show_config_summary({
+        "topic": topic,
+        "goals": goals,
+        "audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "code_examples": include_code,
+        "diagrams": include_diagrams,
+        "backend": backend_choice,
+    }, blog_type="tech_blog")
+
+    if not rich_confirm("Proceed with generation?", default=True):
+        console.print("[yellow]Generation cancelled.[/yellow]")
+        return
+
+    session_data = {
+        "blog_type": "tech_blog",
+        "topic": topic,
+        "goals": goals,
+        "target_audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "include_code_examples": include_code,
+        "include_diagrams": include_diagrams,
+        "custom_instructions": custom_instructions or None,
+        "output_file": output_file or None,
+        "use_ollama": use_ollama,
+        "use_lm_studio": use_lm_studio,
+    }
+    _save_session_file(session_data)
+
+    asyncio.run(_generate_blog(
+        blog_type="tech_blog",
+        topic=topic,
+        goals=goals,
+        target_audience=target_audience,
+        tone=tone,
+        length=length,
+        include_code_examples=include_code,
+        include_diagrams=include_diagrams,
+        custom_instructions=custom_instructions or None,
+        output_file=output_file or None,
+        use_ollama=use_ollama,
+        use_lm_studio=use_lm_studio,
+    ))
+
+
+def _interactive_tutorial():
+    """Full interactive flow for tutorial generation."""
+    topic = rich_text_prompt("Tutorial Topic", hint="e.g. Getting Started with Docker for Beginners")
+    goals = rich_goals_prompt("Learning Goals")
+    difficulty = rich_select("Difficulty Level", ["beginner", "intermediate", "advanced"], default="intermediate")
+    target_audience = rich_text_prompt("Target Audience", default="developers")
+    tone = rich_select("Tone", ["friendly", "professional", "humorous", "technical"], default="friendly")
+    length = rich_select("Length", ["short", "medium", "long"], default="medium")
+    include_code = rich_confirm("Include code examples?", default=True)
+
+    backend_choice = rich_backend_select()
+    use_ollama = backend_choice == "ollama"
+    use_lm_studio = backend_choice == "lm-studio"
+
+    ollama_base_url = None
+    ollama_model = None
+    lm_studio_base_url = None
+    lm_studio_model = None
+
+    if use_ollama:
+        ollama_model = _prompt_ollama_model(ollama_base_url)
+    elif use_lm_studio:
+        lm_studio_model = rich_text_prompt("LM Studio model name", default="local-model")
+
+    streaming = rich_confirm("Enable streaming output?", default=True)
+    stream_mode = "updates"
+    if streaming:
+        stream_mode = rich_select("Streaming mode", ["updates", "messages", "tokens", "all"], default="updates")
+
+    custom_instructions = rich_text_prompt("Custom instructions (optional)", default="")
+    output_file = rich_text_prompt("Output filename (optional, leave blank for auto)", default="")
+
+    show_config_summary({
+        "topic": topic,
+        "goals": goals,
+        "difficulty": difficulty,
+        "audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "code_examples": include_code,
+        "backend": backend_choice,
+        "streaming": streaming,
+        "stream_mode": stream_mode,
+    }, blog_type="tutorial")
+
+    if not rich_confirm("Proceed with generation?", default=True):
+        console.print("[yellow]Generation cancelled.[/yellow]")
+        return
+
+    session_data = {
+        "blog_type": "tutorial",
+        "topic": topic,
+        "goals": goals,
+        "difficulty": difficulty,
+        "target_audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "include_code_examples": include_code,
+        "include_diagrams": False,
+        "custom_instructions": custom_instructions or None,
+        "output_file": output_file or None,
+        "use_ollama": use_ollama,
+        "ollama_base_url": ollama_base_url,
+        "ollama_model": ollama_model,
+        "use_lm_studio": use_lm_studio,
+        "lm_studio_base_url": lm_studio_base_url,
+        "lm_studio_model": lm_studio_model,
+        "streaming": streaming,
+        "stream_mode": stream_mode,
+    }
+    _save_session_file(session_data)
+
+    asyncio.run(_generate_blog(
+        blog_type="tutorial",
+        topic=topic,
+        goals=goals,
+        difficulty=difficulty,
+        target_audience=target_audience,
+        tone=tone,
+        length=length,
+        include_code_examples=include_code,
+        include_diagrams=False,
+        custom_instructions=custom_instructions or None,
+        output_file=output_file or None,
+        use_ollama=use_ollama,
+        ollama_base_url=ollama_base_url,
+        ollama_model=ollama_model,
+        use_lm_studio=use_lm_studio,
+        lm_studio_base_url=lm_studio_base_url,
+        lm_studio_model=lm_studio_model,
+        streaming=streaming,
+        stream_mode=stream_mode,
+    ))
+
+
+def _interactive_comparison():
+    """Full interactive flow for comparison blog generation."""
+    topic = rich_text_prompt("Comparison Topic", hint="e.g. React vs Vue vs Svelte")
+
+    console.print()
+    console.print("  [bold yellow]Items to Compare[/bold yellow]")
+    console.print("  [dim]Enter items one per line. Press Enter on an empty line to finish (min 2).[/dim]")
+    items: list[str] = []
+    idx = 1
+    while True:
+        from rich.prompt import Prompt
+        item = Prompt.ask(f"  [cyan]Item {idx}[/cyan]", default="")
+        item = item.strip()
+        if not item:
+            if len(items) < 2:
+                console.print("  [red]At least two items are required.[/red]")
+                continue
+            break
+        items.append(item)
+        idx += 1
+
+    goals = rich_goals_prompt("Comparison Goals")
+    target_audience = rich_text_prompt("Target Audience", default="developers")
+    tone = rich_select("Tone", ["friendly", "professional", "humorous", "technical"], default="friendly")
+    length = rich_select("Length", ["short", "medium", "long"], default="medium")
+    include_code = rich_confirm("Include code examples?", default=True)
+
+    backend_choice = rich_backend_select()
+    use_ollama = backend_choice == "ollama"
+    use_lm_studio = backend_choice == "lm-studio"
+
+    custom_instructions = rich_text_prompt("Custom instructions (optional)", default="")
+    output_file = rich_text_prompt("Output filename (optional, leave blank for auto)", default="")
+
+    show_config_summary({
+        "topic": topic,
+        "items": items,
+        "goals": goals,
+        "audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "code_examples": include_code,
+        "backend": backend_choice,
+    }, blog_type="comparison")
+
+    if not rich_confirm("Proceed with generation?", default=True):
+        console.print("[yellow]Generation cancelled.[/yellow]")
+        return
+
+    session_data = {
+        "blog_type": "comparison",
+        "topic": topic,
+        "items": items,
+        "goals": goals,
+        "target_audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "include_code_examples": include_code,
+        "include_diagrams": False,
+        "custom_instructions": custom_instructions or None,
+        "output_file": output_file or None,
+        "use_ollama": use_ollama,
+        "use_lm_studio": use_lm_studio,
+    }
+    _save_session_file(session_data)
+
+    asyncio.run(_generate_blog(
+        blog_type="comparison",
+        topic=topic,
+        items=items,
+        goals=goals,
+        target_audience=target_audience,
+        tone=tone,
+        length=length,
+        include_code_examples=include_code,
+        include_diagrams=False,
+        custom_instructions=custom_instructions or None,
+        output_file=output_file or None,
+        use_ollama=use_ollama,
+        use_lm_studio=use_lm_studio,
+    ))
+
+
+def _prompt_ollama_model(ollama_base_url: Optional[str] = None) -> str:
+    """Fetch available Ollama models and prompt user to select one."""
+    try:
+        import httpx
+        response = httpx.get(f"{ollama_base_url or 'http://localhost:11434'}/api/tags")
+        if response.status_code == 200:
+            models = response.json().get("models", [])
+            if models:
+                model_names = [model["name"] for model in models]
+                return rich_select("Ollama Model", model_names, default=model_names[0])
+    except Exception:
+        pass
+    return rich_text_prompt("Ollama model name", hint="e.g. llama2, codellama")
 
 
 @app.command()
@@ -84,22 +370,23 @@ def generate_tech_blog(
             console.print(f"[red]❌ Error resuming generation: {e}[/red]")
             return
     
-    # Interactive prompts for missing parameters
+    # Interactive prompts for missing parameters using Rich UI
     if not topic:
-        topic = typer.prompt("What topic would you like to create a tech blog about?")
+        topic = rich_text_prompt("Blog Topic", hint="What topic would you like to create a tech blog about?")
 
     if not goals:
-        goals_input = typer.prompt("What are the blog goals? (comma-separated)")
-        goals = [goal.strip() for goal in goals_input.split(",") if goal.strip()]
-    
-    console.print(Panel(f"[bold blue]Generating Tech Blog: {topic}[/bold blue]"))
-    console.print(f"Goals: {', '.join(goals)}")
-    console.print(f"Audience: {target_audience}")
-    console.print(f"Tone: {tone}")
-    console.print(f"Length: {length}")
-    console.print(f"Code Examples: {'Yes' if include_code else 'No'}")
-    console.print(f"Diagrams: {'Yes' if include_diagrams else 'No'}")
-    
+        goals = rich_goals_prompt("Blog Goals")
+
+    show_config_summary({
+        "topic": topic,
+        "goals": goals,
+        "audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "code_examples": include_code,
+        "diagrams": include_diagrams,
+    }, blog_type="tech_blog")
+
     # Resolve backend selection
     use_ollama = False
     use_lm_studio = False
@@ -127,7 +414,7 @@ def generate_tech_blog(
         "output_file": output_file,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
-        "timestamp": asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else None
+        "timestamp": None
     }
     
     # Save session file
@@ -204,40 +491,27 @@ def generate_tutorial(
             console.print(f"[red]❌ Error resuming generation: {e}[/red]")
             return
     
-    # Interactive prompts for missing parameters
+    # Interactive prompts for missing parameters using Rich UI
     if not topic:
-        topic = typer.prompt("What topic would you like to create a tutorial about?")
-    
+        topic = rich_text_prompt("Tutorial Topic", hint="What topic would you like to create a tutorial about?")
+
     if not goals:
-        goals_input = typer.prompt("What are the learning goals? (comma-separated)")
-        goals = [goal.strip() for goal in goals_input.split(",") if goal.strip()]
-    
+        goals = rich_goals_prompt("Learning Goals")
+
     if not difficulty:
-        difficulty = typer.prompt(
-            "What difficulty level?",
-            type=click.Choice(["beginner", "intermediate", "advanced"], case_sensitive=False),
-            default="intermediate"
-        )
-    
+        difficulty = rich_select("Difficulty Level", ["beginner", "intermediate", "advanced"], default="intermediate")
+
     if not target_audience:
-        target_audience = typer.prompt("Who is the target audience?", default="developers")
-    
+        target_audience = rich_text_prompt("Target Audience", default="developers")
+
     if not tone:
-        tone = typer.prompt(
-            "What tone should the tutorial have?",
-            type=click.Choice(["friendly", "professional", "humorous", "technical"], case_sensitive=False),
-            default="friendly"
-        )
-    
+        tone = rich_select("Tone", ["friendly", "professional", "humorous", "technical"], default="friendly")
+
     if not length:
-        length = typer.prompt(
-            "How long should the tutorial be?",
-            type=click.Choice(["short", "medium", "long"], case_sensitive=False),
-            default="medium"
-        )
-    
+        length = rich_select("Length", ["short", "medium", "long"], default="medium")
+
     if include_code is None:
-        include_code = typer.confirm("Should the tutorial include code examples?", default=True)
+        include_code = rich_confirm("Include code examples?", default=True)
     
     # Backend override (openai, lm-studio, ollama)
     if backend:
@@ -257,10 +531,9 @@ def generate_tutorial(
 
     # Handle local model selection logic when no backend provided
     if use_ollama is None and use_lm_studio is None and not backend:
-        # Neither specified, ask user to choose
-        use_ollama = typer.confirm("Use Ollama for local testing?", default=False)
-        if not use_ollama:
-            use_lm_studio = typer.confirm("Use LM Studio for local testing?", default=False)
+        backend_choice = rich_backend_select()
+        use_ollama = backend_choice == "ollama"
+        use_lm_studio = backend_choice == "lm-studio"
     elif use_ollama is None and use_lm_studio:
         # LM Studio specified, set Ollama to False
         use_ollama = False
@@ -274,35 +547,10 @@ def generate_tutorial(
         use_lm_studio = False
     
     if use_ollama and not ollama_model:
-        # List available Ollama models
-        try:
-            import httpx
-            response = httpx.get(f"{ollama_base_url or 'http://localhost:11434'}/api/tags")
-            if response.status_code == 200:
-                models = response.json().get("models", [])
-                if models:
-                    model_names = [model["name"] for model in models]
-                    console.print(f"🦙 Available Ollama models: {', '.join(model_names)}")
-                    ollama_model = typer.prompt(
-                        "Which Ollama model to use?",
-                        type=click.Choice(model_names),
-                        default=model_names[0] if model_names else None
-                    )
-                else:
-                    ollama_model = typer.prompt("Enter Ollama model name (e.g., llama2, codellama)")
-            else:
-                ollama_model = typer.prompt("Enter Ollama model name (e.g., llama2, codellama)")
-        except Exception as e:
-            if verbose:
-                console.print(f"⚠️ Could not fetch Ollama models: {e}")
-            ollama_model = typer.prompt("Enter Ollama model name (e.g., llama2, codellama)")
-    
+        ollama_model = _prompt_ollama_model(ollama_base_url)
+
     if use_lm_studio and not lm_studio_model:
-        # For LM Studio, we typically use a generic model name since it's OpenAI-compatible
-        lm_studio_model = typer.prompt(
-            "Enter LM Studio model name (e.g., local-model, llama2, codellama)",
-            default="local-model"
-        )
+        lm_studio_model = rich_text_prompt("LM Studio model name", default="local-model")
     
     # Store session parameters
     session_data = {
@@ -326,29 +574,26 @@ def generate_tutorial(
         "lm_studio_model": lm_studio_model,
         "streaming": streaming,
         "stream_mode": stream_mode,
-        "timestamp": asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else None
+        "timestamp": None
     }
     
     # Save session file
     _save_session_file(session_data)
     
     # Display configuration
-    console.print(Panel(
-        f"[bold blue]🚀 Tutorial Generation Configuration[/bold blue]\n"
-        f"📝 Topic: {topic}\n"
-        f"🎯 Goals: {', '.join(goals)}\n"
-        f"📊 Difficulty: {difficulty}\n"
-        f"👥 Audience: {target_audience}\n"
-        f"🎭 Tone: {tone}\n"
-        f"📏 Length: {length}\n"
-        f"💻 Code Examples: {'Yes' if include_code else 'No'}\n"
-        f"🦙 Ollama: {'Yes' if use_ollama else 'No'}"
-        + (f" (Model: {ollama_model})" if use_ollama and ollama_model else "")
-        + f"\n🖥️ LM Studio: {'Yes' if use_lm_studio else 'No'}"
-        + (f" (Model: {lm_studio_model})" if use_lm_studio and lm_studio_model else ""),
-        title="[bold green]Configuration Summary[/bold green]",
-        border_style="green"
-    ))
+    backend_name = "lm-studio" if use_lm_studio else ("ollama" if use_ollama else "openai")
+    show_config_summary({
+        "topic": topic,
+        "goals": goals,
+        "difficulty": difficulty,
+        "audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "code_examples": include_code,
+        "backend": backend_name,
+        "streaming": streaming,
+        "stream_mode": stream_mode,
+    }, blog_type="tutorial")
     
     if streaming and verbose:
         console.print(Panel(
@@ -470,19 +715,23 @@ def generate_comparison(
         "output_file": output_file,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
-        "timestamp": asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else None
+        "timestamp": None
     }
     
     # Save session file
     _save_session_file(session_data)
     
-    console.print(Panel(f"[bold blue]Generating Comparison: {topic}[/bold blue]"))
-    console.print(f"Items to Compare: {', '.join(items)}")
-    console.print(f"Goals: {', '.join(goals)}")
-    console.print(f"Audience: {target_audience}")
-    console.print(f"Tone: {tone}")
-    console.print(f"Length: {length}")
-    console.print(f"Code Examples: {'Yes' if include_code else 'No'}")
+    backend_name = "lm-studio" if use_lm_studio else ("ollama" if use_ollama else "openai")
+    show_config_summary({
+        "topic": topic,
+        "items": items,
+        "goals": goals,
+        "audience": target_audience,
+        "tone": tone,
+        "length": length,
+        "code_examples": include_code,
+        "backend": backend_name,
+    }, blog_type="comparison")
     
     asyncio.run(_generate_blog(
         blog_type="comparison",
@@ -745,13 +994,8 @@ def _save_session_file(session_data: Dict[str, Any]) -> str:
         
         # Generate filename based on topic and timestamp
         topic_slug = session_data.get("topic", "untitled").lower().replace(" ", "_").replace("-", "_")[:30]
-        timestamp = session_data.get("timestamp", asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else None)
-        if timestamp is None:
-            timestamp = asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else None
-        
-        if timestamp is None:
-            import time
-            timestamp = time.time()
+        import time
+        timestamp = session_data.get("timestamp") or time.time()
         
         filename = f"{topic_slug}_{int(timestamp)}.json"
         filepath = works_dir / filename
