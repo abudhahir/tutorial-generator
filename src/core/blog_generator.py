@@ -15,12 +15,13 @@ from .models import BlogRequest, BlogPost, BlogGenerationResult, BlogType
 from .config import settings
 from ..agents.agent_orchestrator import AgentOrchestrator
 from .integrated_mcp_service import IntegratedMCPService, write_file_integrated_mcp
+from ..agents.runtime import AgentRuntime
 
 
 class BlogGenerator:
     """Main interface for generating blog posts using the multi-agent system."""
     
-    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", **kwargs):
+    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN, **kwargs):
         """Initialize the blog generator."""
         self.verbose = verbose
         self.use_ollama = use_ollama
@@ -89,6 +90,7 @@ class BlogGenerator:
             lm_studio_model=lm_studio_model,
             streaming=streaming,
             stream_mode=stream_mode,
+            agent_runtime=agent_runtime,
             **kwargs
         )
         
@@ -581,4 +583,3 @@ class BlogGenerator:
                     success = await self.integrated_mcp_service.write_file(str(code_path), code_content)
                     if not success and self.verbose:
                         self.console.print(f"⚠️ Failed to save code example: {code_path}")
-

@@ -22,6 +22,7 @@ from rich.live import Live
 from rich.spinner import Spinner
 
 from ..core.config import settings
+from .runtime import AgentRuntime
 
 
 class StreamingCallbackHandler:
@@ -217,6 +218,7 @@ class BaseAgent(ABC):
         streaming: bool = True,  # Enable streaming by default
         stream_mode: str = "updates",  # Streaming mode for output
         request_timeout: float = 120.0,  # Max seconds to wait for LLM response
+        agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN,
     ):
         """Initialize the base agent.
         
@@ -239,6 +241,11 @@ class BaseAgent(ABC):
         self.streaming = streaming
         self.stream_mode = stream_mode
         self.request_timeout = request_timeout
+        self.agent_runtime = (
+            agent_runtime
+            if isinstance(agent_runtime, AgentRuntime)
+            else AgentRuntime.parse(agent_runtime)
+        )
         
         # Set model name based on local model usage
         if use_ollama:
@@ -272,6 +279,23 @@ class BaseAgent(ABC):
     def _init_llm(self):
         """Initialize the language model based on configuration or Ollama."""
         try:
+            if self.agent_runtime is AgentRuntime.ANTHROPIC:
+                raise NotImplementedError(
+                    "The Anthropic agent runtime is not implemented yet"
+                )
+
+            if self.agent_runtime is AgentRuntime.OPENAI:
+                import os
+                from agents import Agent
+
+                os.environ.setdefault("OPENAI_API_KEY", settings.openai_api_key.strip())
+                self.llm = Agent(
+                    name=self.name,
+                    instructions=self.get_system_prompt(),
+                    model=self.model_name,
+                )
+                return
+
             if self.use_ollama:
                 # Use Ollama for local testing
                 try:
@@ -488,6 +512,16 @@ class BaseAgent(ABC):
             if context:
                 self.console.print(f"🔗 [yellow]Context keys:[/yellow] {list(context.keys())}")
         
+        if self.agent_runtime is AgentRuntime.OPENAI:
+            from agents import Runner
+
+            prompt = user_input
+            if context:
+                context_str = "\n".join(f"{key}: {value}" for key, value in context.items())
+                prompt = f"Context:\n{context_str}\n\nUser Input:\n{user_input}"
+            result = await Runner.run(self.llm, prompt)
+            return self._clean_response(str(result.final_output))
+
         messages = self.create_messages(user_input, context)
         
         # Create streaming callback handler
@@ -575,7 +609,26 @@ class BaseAgent(ABC):
                 title="[bold green]Agent Activity[/bold green]",
                 border_style="blue"
             ))
-        
+
+        if self.agent_runtime is AgentRuntime.OPENAI:
+            from agents import Runner
+
+            prompt = user_input
+            if context:
+                context_str = "\n".join(f"{key}: {value}" for key, value in context.items())
+                prompt = f"Context:\n{context_str}\n\nUser Input:\n{user_input}"
+
+            stream = Runner.run_streamed(self.llm, prompt)
+            async for event in stream.stream_events():
+                if getattr(event, "type", None) != "raw_response_event":
+                    continue
+                data = getattr(event, "data", None)
+                if getattr(data, "type", None) == "output_text_delta":
+                    delta = getattr(data, "delta", None)
+                    if delta:
+                        yield delta
+            return
+
         messages = self.create_messages(user_input, context)
         
         # Create enhanced streaming callback handler

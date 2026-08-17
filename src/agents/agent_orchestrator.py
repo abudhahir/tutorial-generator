@@ -29,6 +29,7 @@ from .formatting_agent import FormattingAgent
 from .review_agent import ReviewAgent
 from ..core.models import BlogRequest, BlogPost, BlogGenerationResult
 from ..core.config import settings
+from .runtime import AgentRuntime
 
 
 # Define the workflow state structure
@@ -40,7 +41,7 @@ AgentState = Dict[str, Any]
 class AgentOrchestrator:
     """Orchestrates the multi-agent workflow for blog generation."""
     
-    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", **kwargs):
+    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN, **kwargs):
         """Initialize the agent orchestrator."""
         self.verbose = verbose
         self.use_ollama = use_ollama
@@ -50,6 +51,7 @@ class AgentOrchestrator:
         self.lm_studio_model = lm_studio_model
         self.streaming = streaming
         self.stream_mode = stream_mode
+        self.agent_runtime = agent_runtime if isinstance(agent_runtime, AgentRuntime) else AgentRuntime.parse(agent_runtime)
         
         # Initialize Rich console for beautiful output
         self.console = Console()
@@ -104,6 +106,7 @@ class AgentOrchestrator:
             "lm_studio_model": lm_studio_model,
             "streaming": streaming,
             "stream_mode": stream_mode,
+            "agent_runtime": self.agent_runtime,
             **kwargs
         }
         
@@ -788,6 +791,7 @@ class AgentOrchestrator:
             "settings": {
                 "default_model": settings.default_model,
                 "default_temperature": settings.default_temperature,
-                "max_tokens": settings.max_tokens
+                "max_tokens": settings.max_tokens,
+                "agent_runtime": self.agent_runtime.value,
             }
         }

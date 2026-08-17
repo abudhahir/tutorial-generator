@@ -336,6 +336,7 @@ def generate_tech_blog(
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
     custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
     backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
+    agent_runtime: str = typer.Option("langchain", "--agent-runtime", help="Agent SDK track: langchain, openai, or anthropic", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
     """Generate a tech blog post with interactive prompts for missing parameters."""
@@ -414,6 +415,7 @@ def generate_tech_blog(
         "output_file": output_file,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
+        "agent_runtime": agent_runtime,
         "timestamp": None
     }
     
@@ -432,7 +434,8 @@ def generate_tech_blog(
         custom_instructions=custom_instructions,
         output_file=output_file,
         use_ollama=use_ollama,
-        use_lm_studio=use_lm_studio
+        use_lm_studio=use_lm_studio,
+        agent_runtime=agent_runtime
     ))
 
 
@@ -457,6 +460,7 @@ def generate_tutorial(
     lm_studio_model: Optional[str] = typer.Option(None, "--lm-studio-model", help="LM Studio model to use (will prompt if not provided)"),
     streaming: bool = typer.Option(True, "--streaming/--no-streaming", help="Enable streaming output for real-time agent thinking and LLM responses"),
     stream_mode: str = typer.Option("updates", "--stream-mode", help="Streaming mode: updates, messages, tokens, or all"),
+    agent_runtime: str = typer.Option("langchain", "--agent-runtime", help="Agent SDK track: langchain, openai, or anthropic", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
     """Generate a tutorial blog post with interactive prompts for missing parameters."""
@@ -574,6 +578,7 @@ def generate_tutorial(
         "lm_studio_model": lm_studio_model,
         "streaming": streaming,
         "stream_mode": stream_mode,
+        "agent_runtime": agent_runtime,
         "timestamp": None
     }
     
@@ -625,7 +630,8 @@ def generate_tutorial(
         lm_studio_base_url=lm_studio_base_url,
         lm_studio_model=lm_studio_model,
         streaming=streaming,
-        stream_mode=stream_mode
+        stream_mode=stream_mode,
+        agent_runtime=agent_runtime
     ))
 
 
@@ -641,6 +647,7 @@ def generate_comparison(
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
     custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
     backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
+    agent_runtime: str = typer.Option("langchain", "--agent-runtime", help="Agent SDK track: langchain, openai, or anthropic", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
     """Generate a comparison blog post."""
@@ -715,6 +722,7 @@ def generate_comparison(
         "output_file": output_file,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
+        "agent_runtime": agent_runtime,
         "timestamp": None
     }
     
@@ -746,7 +754,8 @@ def generate_comparison(
         custom_instructions=custom_instructions,
         output_file=output_file,
         use_ollama=use_ollama,
-        use_lm_studio=use_lm_studio
+        use_lm_studio=use_lm_studio,
+        agent_runtime=agent_runtime
     ))
 
 
@@ -1029,7 +1038,8 @@ async def _generate_blog_from_session(session_data: Dict[str, Any], verbose: boo
                 include_diagrams=session_data.get("include_diagrams", False),
                 custom_instructions=session_data.get("custom_instructions"),
                 output_file=session_data.get("output_file"),
-                verbose=verbose
+                verbose=verbose,
+                agent_runtime=session_data.get("agent_runtime", "langchain")
             )
         elif blog_type == "tutorial":
             result = await _generate_blog(
@@ -1052,7 +1062,8 @@ async def _generate_blog_from_session(session_data: Dict[str, Any], verbose: boo
                 lm_studio_base_url=session_data.get("lm_studio_base_url"),
                 lm_studio_model=session_data.get("lm_studio_model"),
                 streaming=session_data.get("streaming", True),
-                stream_mode=session_data.get("stream_mode", "updates")
+                stream_mode=session_data.get("stream_mode", "updates"),
+                agent_runtime=session_data.get("agent_runtime", "langchain")
             )
         elif blog_type == "comparison":
             result = await _generate_blog(
@@ -1067,7 +1078,8 @@ async def _generate_blog_from_session(session_data: Dict[str, Any], verbose: boo
                 include_diagrams=False,
                 custom_instructions=session_data.get("custom_instructions"),
                 output_file=session_data.get("output_file"),
-                verbose=verbose
+                verbose=verbose,
+                agent_runtime=session_data.get("agent_runtime", "langchain")
             )
         else:
             raise ValueError(f"Unknown blog type: {blog_type}")
@@ -1098,7 +1110,8 @@ async def _generate_blog(
     lm_studio_base_url: Optional[str] = None,
     lm_studio_model: Optional[str] = None,
     streaming: bool = True,
-    stream_mode: str = "updates"
+    stream_mode: str = "updates",
+    agent_runtime: str = "langchain"
 ):
     """Internal function to generate a blog post."""
     try:
@@ -1114,7 +1127,8 @@ async def _generate_blog(
             lm_studio_base_url=lm_studio_base_url,
             lm_studio_model=lm_studio_model,
             streaming=streaming,
-            stream_mode=stream_mode
+            stream_mode=stream_mode,
+            agent_runtime=agent_runtime
         )
         
         if verbose:
