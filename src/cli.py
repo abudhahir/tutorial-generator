@@ -329,12 +329,12 @@ def generate_tech_blog(
     topic: Optional[str] = typer.Option(None, "--topic", "-t", help="Main topic of the blog post (will prompt if not provided)"),
     goals: List[str] = typer.Option([], "--goal", "-g", help="Goals to achieve (can specify multiple, will prompt if not provided)"),
     target_audience: str = typer.Option("developers", "--audience", "-a", help="Target audience"),
-    tone: str = typer.Option("friendly", "--tone", "-t", help="Tone of the blog"),
+    tone: str = typer.Option("friendly", "--tone", help="Tone of the blog"),
     length: str = typer.Option("medium", "--length", "-l", help="Length of the blog"),
     include_code: bool = typer.Option(True, "--code/--no-code", help="Include code examples"),
     include_diagrams: bool = typer.Option(False, "--diagrams/--no-diagrams", help="Include diagrams"),
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
-    custom_instructions: Optional[str] = typer.Option(None, "--instructions", "-i", help="Custom instructions"),
+    custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
     backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
@@ -446,7 +446,7 @@ def generate_tutorial(
     length: str = typer.Option(None, "--length", "-l", help="Length of the tutorial (will prompt if not provided)"),
     include_code: bool = typer.Option(None, "--code/--no-code", help="Include code examples (will prompt if not provided)"),
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
-    custom_instructions: Optional[str] = typer.Option(None, "--instructions", "-i", help="Custom instructions"),
+    custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
     use_ollama: bool = typer.Option(None, "--ollama", help="Use Ollama for local testing (will prompt if not provided)"),
@@ -635,11 +635,11 @@ def generate_comparison(
     items: List[str] = typer.Option([], "--item", "-i", help="Items to compare (can specify multiple)"),
     goals: List[str] = typer.Option([], "--goal", "-g", help="Goals to achieve (can specify multiple)"),
     target_audience: str = typer.Option("developers", "--audience", "-a", help="Target audience"),
-    tone: str = typer.Option("friendly", "--tone", "-t", help="Tone of the blog"),
+    tone: str = typer.Option("friendly", "--tone", help="Tone of the blog"),
     length: str = typer.Option("medium", "--length", "-l", help="Length of the blog"),
     include_code: bool = typer.Option(True, "--code/--no-code", help="Include code examples"),
     output_file: Optional[str] = typer.Option(None, "--output", "-o", help="Output filename"),
-    custom_instructions: Optional[str] = typer.Option(None, "--instructions", "-i", help="Custom instructions"),
+    custom_instructions: Optional[str] = typer.Option(None, "--instructions", help="Custom instructions"),
     backend: Optional[str] = typer.Option(None, "--backend", help="LLM backend: openai, lm-studio, or ollama", case_sensitive=False),
     resume: Optional[str] = typer.Option(None, "--resume", "-r", help="Resume from a session file")
 ):
