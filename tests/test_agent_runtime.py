@@ -6,6 +6,7 @@ from src.agents.runtime import AgentRuntime
 from src.agents.base_agent import BaseAgent
 from src.agents.agent_orchestrator import AgentOrchestrator
 from src.core.config import settings
+from src import cli_prompts
 
 
 def test_runtime_names_are_stable_for_cli_and_sessions():
@@ -26,6 +27,19 @@ def test_runtime_parses_case_insensitively(value):
 def test_runtime_rejects_unknown_values():
     with pytest.raises(ValueError, match="Unsupported agent runtime"):
         AgentRuntime.parse("unknown")
+
+
+def test_interactive_backend_prompt_includes_deepseek(monkeypatch):
+    captured = {}
+
+    def fake_rich_select(**kwargs):
+        captured.update(kwargs)
+        return "deepseek"
+
+    monkeypatch.setattr(cli_prompts, "rich_select", fake_rich_select)
+
+    assert cli_prompts.rich_backend_select() == "deepseek"
+    assert captured["choices"] == ["openai", "deepseek", "lm-studio", "ollama"]
 
 
 class StubAgent(BaseAgent):

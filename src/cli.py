@@ -80,6 +80,7 @@ def _interactive_tech_blog():
     backend_choice = rich_backend_select()
     use_ollama = backend_choice == "ollama"
     use_lm_studio = backend_choice == "lm-studio"
+    use_deepseek = backend_choice == "deepseek"
 
     custom_instructions = rich_text_prompt("Custom instructions (optional)", default="")
     output_file = rich_text_prompt("Output filename (optional, leave blank for auto)", default="")
@@ -112,6 +113,7 @@ def _interactive_tech_blog():
         "output_file": output_file or None,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
+        "use_deepseek": use_deepseek,
     }
     _save_session_file(session_data)
 
@@ -128,6 +130,7 @@ def _interactive_tech_blog():
         output_file=output_file or None,
         use_ollama=use_ollama,
         use_lm_studio=use_lm_studio,
+        use_deepseek=use_deepseek,
     ))
 
 
@@ -144,6 +147,7 @@ def _interactive_tutorial():
     backend_choice = rich_backend_select()
     use_ollama = backend_choice == "ollama"
     use_lm_studio = backend_choice == "lm-studio"
+    use_deepseek = backend_choice == "deepseek"
 
     ollama_base_url = None
     ollama_model = None
@@ -198,6 +202,7 @@ def _interactive_tutorial():
         "use_lm_studio": use_lm_studio,
         "lm_studio_base_url": lm_studio_base_url,
         "lm_studio_model": lm_studio_model,
+        "use_deepseek": use_deepseek,
         "streaming": streaming,
         "stream_mode": stream_mode,
     }
@@ -221,6 +226,7 @@ def _interactive_tutorial():
         use_lm_studio=use_lm_studio,
         lm_studio_base_url=lm_studio_base_url,
         lm_studio_model=lm_studio_model,
+        use_deepseek=use_deepseek,
         streaming=streaming,
         stream_mode=stream_mode,
     ))
@@ -256,6 +262,7 @@ def _interactive_comparison():
     backend_choice = rich_backend_select()
     use_ollama = backend_choice == "ollama"
     use_lm_studio = backend_choice == "lm-studio"
+    use_deepseek = backend_choice == "deepseek"
 
     custom_instructions = rich_text_prompt("Custom instructions (optional)", default="")
     output_file = rich_text_prompt("Output filename (optional, leave blank for auto)", default="")
@@ -289,6 +296,7 @@ def _interactive_comparison():
         "output_file": output_file or None,
         "use_ollama": use_ollama,
         "use_lm_studio": use_lm_studio,
+        "use_deepseek": use_deepseek,
     }
     _save_session_file(session_data)
 
@@ -306,6 +314,7 @@ def _interactive_comparison():
         output_file=output_file or None,
         use_ollama=use_ollama,
         use_lm_studio=use_lm_studio,
+        use_deepseek=use_deepseek,
     ))
 
 

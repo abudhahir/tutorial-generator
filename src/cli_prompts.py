@@ -179,9 +179,10 @@ def rich_backend_select() -> str:
     """Prompt user to select an LLM backend."""
     return rich_select(
         label="Which LLM backend would you like to use?",
-        choices=["openai", "lm-studio", "ollama"],
+        choices=["openai", "deepseek", "lm-studio", "ollama"],
         descriptions=[
             "OpenAI API (requires OPENAI_API_KEY)",
+            "DeepSeek API through the LangChain track (requires DEEPSEEK_API_KEY)",
             "LM Studio local server",
             "Ollama local models",
         ],
