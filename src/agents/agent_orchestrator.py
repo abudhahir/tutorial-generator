@@ -4,6 +4,7 @@ Agent Orchestrator for coordinating the multi-agent blog generation workflow.
 
 import asyncio
 import time
+import traceback
 from typing import Dict, List, Any, Optional, Tuple, TypedDict
 try:
     from langgraph import StateGraph, END, START
@@ -198,15 +199,16 @@ class AgentOrchestrator:
                 }
             }
         except Exception as e:
+            tb = traceback.format_exc()
             error_msg = f"Research failed: {str(e)}"
-            if self.verbose:
-                self.console.print(Panel(
-                    f"[bold red]❌ [{self.research_agent.name}][/bold red]\n"
-                    f"[red]{error_msg}[/red]",
-                    title="[bold red]Research Error[/bold red]",
-                    border_style="red"
-                ))
-            
+            self.console.print(Panel(
+                f"[bold red]❌ [{self.research_agent.name}][/bold red]\n"
+                f"[red]{error_msg}[/red]\n\n"
+                f"[dim]{tb}[/dim]",
+                title="[bold red]Research Error[/bold red]",
+                border_style="red"
+            ))
+
             return {
                 **state,
                 "errors": state.get("errors", []) + [error_msg]
@@ -263,15 +265,16 @@ class AgentOrchestrator:
                 }
             }
         except Exception as e:
+            tb = traceback.format_exc()
             error_msg = f"Content generation failed: {str(e)}"
-            if self.verbose:
-                self.console.print(Panel(
-                    f"[bold red]❌ [{self.content_agent.name}][/bold red]\n"
-                    f"[red]{error_msg}[/red]",
-                    title="[bold red]Content Generation Error[/bold red]",
-                    border_style="red"
-                ))
-            
+            self.console.print(Panel(
+                f"[bold red]❌ [{self.content_agent.name}][/bold red]\n"
+                f"[red]{error_msg}[/red]\n\n"
+                f"[dim]{tb}[/dim]",
+                title="[bold red]Content Generation Error[/bold red]",
+                border_style="red"
+            ))
+
             return {
                 **state,
                 "errors": state.get("errors", []) + [error_msg]
@@ -345,15 +348,16 @@ class AgentOrchestrator:
                 }
             }
         except Exception as e:
+            tb = traceback.format_exc()
             error_msg = f"Code generation failed: {str(e)}"
-            if self.verbose:
-                self.console.print(Panel(
-                    f"[bold red]❌ [{self.code_agent.name}][/bold red]\n"
-                    f"[red]{error_msg}[/red]",
-                    title="[bold red]Code Generation Error[/bold red]",
-                    border_style="red"
-                ))
-            
+            self.console.print(Panel(
+                f"[bold red]❌ [{self.code_agent.name}][/bold red]\n"
+                f"[red]{error_msg}[/red]\n\n"
+                f"[dim]{tb}[/dim]",
+                title="[bold red]Code Generation Error[/bold red]",
+                border_style="red"
+            ))
+
             return {
                 **state,
                 "errors": state.get("errors", []) + [error_msg]
@@ -418,15 +422,16 @@ class AgentOrchestrator:
                 }
             }
         except Exception as e:
+            tb = traceback.format_exc()
             error_msg = f"Formatting failed: {str(e)}"
-            if self.verbose:
-                self.console.print(Panel(
-                    f"[bold red]❌ [{self.formatting_agent.name}][/bold red]\n"
-                    f"[red]{error_msg}[/red]",
-                    title="[bold red]Formatting Error[/bold red]",
-                    border_style="red"
-                ))
-            
+            self.console.print(Panel(
+                f"[bold red]❌ [{self.formatting_agent.name}][/bold red]\n"
+                f"[red]{error_msg}[/red]\n\n"
+                f"[dim]{tb}[/dim]",
+                title="[bold red]Formatting Error[/bold red]",
+                border_style="red"
+            ))
+
             return {
                 **state,
                 "errors": state.get("errors", []) + [error_msg]
@@ -515,15 +520,16 @@ class AgentOrchestrator:
                 }
             }
         except Exception as e:
+            tb = traceback.format_exc()
             error_msg = f"Review failed: {str(e)}"
-            if self.verbose:
-                self.console.print(Panel(
-                    f"[bold red]❌ [{self.review_agent.name}][/bold red]\n"
-                    f"[red]{error_msg}[/red]",
-                    title="[bold red]Review Error[/bold red]",
-                    border_style="red"
-                ))
-            
+            self.console.print(Panel(
+                f"[bold red]❌ [{self.review_agent.name}][/bold red]\n"
+                f"[red]{error_msg}[/red]\n\n"
+                f"[dim]{tb}[/dim]",
+                title="[bold red]Review Error[/bold red]",
+                border_style="red"
+            ))
+
             return {
                 **state,
                 "errors": state.get("errors", []) + [error_msg]
@@ -661,6 +667,14 @@ class AgentOrchestrator:
             )
             
         except Exception as e:
+            tb = traceback.format_exc()
+            self.console.print(Panel(
+                f"[bold red]❌ Workflow execution failed[/bold red]\n"
+                f"[red]{str(e)}[/red]\n\n"
+                f"[dim]{tb}[/dim]",
+                title="[bold red]Workflow Error[/bold red]",
+                border_style="red"
+            ))
             return BlogGenerationResult(
                 success=False,
                 blog_post=None,

@@ -3,16 +3,21 @@ Configuration management for the I'm Poster blog generator.
 """
 
 from typing import Optional
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     """Application configuration settings."""
-    
+
     # API Keys
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
     anthropic_api_key: Optional[str] = Field(None, env="ANTHROPIC_API_KEY")
+
+    @field_validator("openai_api_key", "anthropic_api_key", mode="before")
+    @classmethod
+    def strip_api_keys(cls, v: Optional[str]) -> Optional[str]:
+        return v.strip() if v else v
     
     # Database Configuration
     chroma_host: str = Field("localhost", env="CHROMA_HOST")

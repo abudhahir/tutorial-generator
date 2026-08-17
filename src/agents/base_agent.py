@@ -362,6 +362,10 @@ class BaseAgent(ABC):
                     self.console.print(f"✅ [{self.name}] LM Studio initialized successfully")
                     
             elif self.model_name.startswith("gpt-"):
+                if self.verbose:
+                    api_key_preview = settings.openai_api_key[:8] + "..." if settings.openai_api_key else "NOT SET"
+                    self.console.print(f"🔑 [{self.name}] OpenAI API key: {api_key_preview}")
+                    self.console.print(f"🤖 [{self.name}] Model: {self.model_name}, Timeout: {self.request_timeout}s")
                 self.llm = ChatOpenAI(
                     model=self.model_name,
                     temperature=self.temperature,
@@ -384,6 +388,10 @@ class BaseAgent(ABC):
                 )
             else:
                 # Default to OpenAI
+                if self.verbose:
+                    api_key_preview = settings.openai_api_key[:8] + "..." if settings.openai_api_key else "NOT SET"
+                    self.console.print(f"🔑 [{self.name}] OpenAI API key: {api_key_preview}")
+                    self.console.print(f"🤖 [{self.name}] Model: {self.model_name}, Timeout: {self.request_timeout}s")
                 self.llm = ChatOpenAI(
                     model=self.model_name,
                     temperature=self.temperature,
@@ -396,6 +404,14 @@ class BaseAgent(ABC):
         except ImportError as e:
             raise ImportError(f"Required package not installed: {e}")
         except Exception as e:
+            import traceback
+            self.console.print(Panel(
+                f"[bold red]❌ [{self.name}] Failed to initialize LLM[/bold red]\n"
+                f"[red]{str(e)}[/red]\n\n"
+                f"[dim]{traceback.format_exc()}[/dim]",
+                title="[bold red]LLM Init Error[/bold red]",
+                border_style="red"
+            ))
             raise Exception(f"Failed to initialize LLM: {e}")
     
     @abstractmethod
