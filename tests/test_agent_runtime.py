@@ -103,7 +103,8 @@ def test_orchestrator_assigns_deepseek_backend_to_every_langchain_node(monkeypat
     assert [agent.model_name for agent in agents] == [settings.default_deepseek_model] * 5
 
 
-def test_orchestrator_assigns_anthropic_runtime_to_every_node_agent():
+def test_orchestrator_assigns_anthropic_runtime_to_every_node_agent(monkeypatch):
+    monkeypatch.setattr(settings, "anthropic_api_key", "test-anthropic-key")
     orchestrator = AgentOrchestrator(
         agent_runtime=AgentRuntime.ANTHROPIC,
         streaming=False,

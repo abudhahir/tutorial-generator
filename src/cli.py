@@ -49,6 +49,14 @@ app = typer.Typer(
 console = Console()
 
 
+@app.command("tui")
+def launch_tui() -> None:
+    """Launch the Textual pre-configuration workflow monitor."""
+    from .tui.app import run_tui
+
+    run_tui()
+
+
 @app.callback(invoke_without_command=True)
 def default_interactive(ctx: typer.Context):
     """Launch interactive mode when no subcommand is provided."""

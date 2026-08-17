@@ -5,7 +5,8 @@ Agent Orchestrator for coordinating the multi-agent blog generation workflow.
 import asyncio
 import time
 import traceback
-from typing import Dict, List, Any, Optional, Tuple, TypedDict
+import uuid
+from typing import Callable, Dict, List, Any, Optional, Tuple, TypedDict
 try:
     from langgraph import StateGraph, END, START
 except ImportError:
@@ -30,6 +31,7 @@ from .review_agent import ReviewAgent
 from ..core.models import BlogRequest, BlogPost, BlogGenerationResult
 from ..core.config import settings
 from .runtime import AgentRuntime
+from ..tui.events import EventKind, WorkflowEvent
 
 
 # Define the workflow state structure
@@ -41,7 +43,7 @@ AgentState = Dict[str, Any]
 class AgentOrchestrator:
     """Orchestrates the multi-agent workflow for blog generation."""
     
-    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, use_deepseek: bool = False, deepseek_base_url: Optional[str] = None, deepseek_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN, **kwargs):
+    def __init__(self, verbose: bool = False, use_ollama: bool = False, ollama_base_url: Optional[str] = None, ollama_model: Optional[str] = None, use_lm_studio: bool = False, lm_studio_base_url: Optional[str] = None, lm_studio_model: Optional[str] = None, use_deepseek: bool = False, deepseek_base_url: Optional[str] = None, deepseek_model: Optional[str] = None, streaming: bool = True, stream_mode: str = "updates", agent_runtime: AgentRuntime | str = AgentRuntime.LANGCHAIN, event_sink: Optional[Callable[[WorkflowEvent], None]] = None, **kwargs):
         """Initialize the agent orchestrator."""
         self.verbose = verbose
         self.use_ollama = use_ollama
@@ -54,6 +56,8 @@ class AgentOrchestrator:
         self.deepseek_model = deepseek_model
         self.streaming = streaming
         self.stream_mode = stream_mode
+        self.event_sink = event_sink
+        self.run_id = str(uuid.uuid4())
         self.agent_runtime = agent_runtime if isinstance(agent_runtime, AgentRuntime) else AgentRuntime.parse(agent_runtime)
         if use_deepseek and self.agent_runtime is not AgentRuntime.LANGCHAIN:
             raise ValueError("DeepSeek backend is currently supported by the LangChain track only")
@@ -117,6 +121,9 @@ class AgentOrchestrator:
             "streaming": streaming,
             "stream_mode": stream_mode,
             "agent_runtime": self.agent_runtime,
+            "event_sink": event_sink,
+            "run_id": self.run_id,
+            "runtime": self.agent_runtime.value,
             **kwargs
         }
         
@@ -166,9 +173,24 @@ class AgentOrchestrator:
         
         # Compile the workflow
         return workflow.compile()
+
+    def _publish_event(self, kind: EventKind, node: str = "", text: str = "", error: str = "", details: Optional[Dict[str, Any]] = None) -> None:
+        """Publish a UI event when a consumer has opted in."""
+        if not self.event_sink:
+            return
+        self.event_sink(WorkflowEvent(
+            kind=kind,
+            run_id=self.run_id,
+            runtime=self.agent_runtime.value,
+            node=node,
+            text=text,
+            error=error,
+            details=details or {},
+        ))
     
     async def _research_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the research agent node with enhanced streaming output."""
+        self._publish_event(EventKind.NODE_STARTED, node="research")
         if self.verbose:
             self.console.print(Panel(
                 f"[bold blue]🔍 [{self.research_agent.name}][/bold blue]\n"
@@ -192,6 +214,7 @@ class AgentOrchestrator:
             
             # Execute research with streaming
             research_result = await self.research_agent.process(blog_request, {})
+            self._publish_event(EventKind.NODE_COMPLETED, node="research", details={"output_size": len(str(research_result))})
             
             if self.verbose:
                 self.console.print(Panel(
@@ -214,6 +237,7 @@ class AgentOrchestrator:
         except Exception as e:
             tb = traceback.format_exc()
             error_msg = f"Research failed: {str(e)}"
+            self._publish_event(EventKind.NODE_FAILED, node="research", error=error_msg)
             self.console.print(Panel(
                 f"[bold red]❌ [{self.research_agent.name}][/bold red]\n"
                 f"[red]{error_msg}[/red]\n\n"
@@ -229,6 +253,7 @@ class AgentOrchestrator:
     
     async def _content_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the content agent node with enhanced streaming output."""
+        self._publish_event(EventKind.NODE_STARTED, node="content")
         if self.verbose:
             self.console.print(Panel(
                 f"[bold blue]✍️ [{self.content_agent.name}][/bold blue]\n"
@@ -254,6 +279,7 @@ class AgentOrchestrator:
             
             # Execute content generation with streaming
             blog_post = await self.content_agent.process(research_data, context)
+            self._publish_event(EventKind.NODE_COMPLETED, node="content", details={"output_size": len(str(blog_post))})
             
             if self.verbose:
                 sections_count = len(blog_post.sections) if hasattr(blog_post, 'sections') else 0
@@ -280,6 +306,7 @@ class AgentOrchestrator:
         except Exception as e:
             tb = traceback.format_exc()
             error_msg = f"Content generation failed: {str(e)}"
+            self._publish_event(EventKind.NODE_FAILED, node="content", error=error_msg)
             self.console.print(Panel(
                 f"[bold red]❌ [{self.content_agent.name}][/bold red]\n"
                 f"[red]{error_msg}[/red]\n\n"
@@ -295,6 +322,7 @@ class AgentOrchestrator:
     
     async def _code_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the code agent node with enhanced streaming output."""
+        self._publish_event(EventKind.NODE_STARTED, node="code")
         # Check if we have a valid blog post to work with
         if "blog_post" not in state or state["blog_post"] is None:
             error_msg = "No blog post available for code generation"
@@ -340,6 +368,7 @@ class AgentOrchestrator:
                 self.console.print(f"💻 [yellow]Generating code examples with streaming output...[/yellow]")
             
             enhanced_blog_post = await self.code_agent.process(blog_post, context)
+            self._publish_event(EventKind.NODE_COMPLETED, node="code", details={"output_size": len(str(enhanced_blog_post))})
             
             if self.verbose:
                 total_examples = sum(len(s.code_examples) for s in enhanced_blog_post.sections)
@@ -363,6 +392,7 @@ class AgentOrchestrator:
         except Exception as e:
             tb = traceback.format_exc()
             error_msg = f"Code generation failed: {str(e)}"
+            self._publish_event(EventKind.NODE_FAILED, node="code", error=error_msg)
             self.console.print(Panel(
                 f"[bold red]❌ [{self.code_agent.name}][/bold red]\n"
                 f"[red]{error_msg}[/red]\n\n"
@@ -378,6 +408,7 @@ class AgentOrchestrator:
     
     async def _formatting_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the formatting agent node with enhanced streaming output."""
+        self._publish_event(EventKind.NODE_STARTED, node="formatting")
         # Check if we have a valid blog post to work with
         if "blog_post" not in state or state["blog_post"] is None:
             error_msg = "No blog post available for formatting"
@@ -415,6 +446,7 @@ class AgentOrchestrator:
                 self.console.print(f"🎨 [yellow]Applying Markdown formatting and structure optimization...[/yellow]")
             
             formatted_blog_post = await self.formatting_agent.process(blog_post, {})
+            self._publish_event(EventKind.NODE_COMPLETED, node="formatting", details={"output_size": len(str(formatted_blog_post))})
             
             if self.verbose:
                 self.console.print(Panel(
@@ -437,6 +469,7 @@ class AgentOrchestrator:
         except Exception as e:
             tb = traceback.format_exc()
             error_msg = f"Formatting failed: {str(e)}"
+            self._publish_event(EventKind.NODE_FAILED, node="formatting", error=error_msg)
             self.console.print(Panel(
                 f"[bold red]❌ [{self.formatting_agent.name}][/bold red]\n"
                 f"[red]{error_msg}[/red]\n\n"
@@ -452,6 +485,7 @@ class AgentOrchestrator:
     
     async def _review_node(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the review agent node with enhanced streaming output."""
+        self._publish_event(EventKind.NODE_STARTED, node="review")
         # Check if we have a valid blog post to work with
         if "blog_post" not in state or state["blog_post"] is None:
             error_msg = "No blog post available for review"
@@ -490,6 +524,7 @@ class AgentOrchestrator:
             
             # Review agent returns a tuple (final_blog_post, review_results)
             review_result = await self.review_agent.process(blog_post, {})
+            self._publish_event(EventKind.NODE_COMPLETED, node="review")
             
             # Properly unpack the tuple
             if isinstance(review_result, tuple):
@@ -535,6 +570,7 @@ class AgentOrchestrator:
         except Exception as e:
             tb = traceback.format_exc()
             error_msg = f"Review failed: {str(e)}"
+            self._publish_event(EventKind.NODE_FAILED, node="review", error=error_msg)
             self.console.print(Panel(
                 f"[bold red]❌ [{self.review_agent.name}][/bold red]\n"
                 f"[red]{error_msg}[/red]\n\n"
@@ -558,6 +594,10 @@ class AgentOrchestrator:
             Blog generation result with the final blog post
         """
         start_time = time.time()
+        self._publish_event(
+            EventKind.WORKFLOW_STARTED,
+            details={"topic": blog_request.topic, "blog_type": blog_request.blog_type.value},
+        )
         
         try:
             # Initialize the workflow state
@@ -627,6 +667,7 @@ class AgentOrchestrator:
             # Check for errors
             if final_state.get("errors"):
                 error_msg = "; ".join(final_state["errors"])
+                self._publish_event(EventKind.WORKFLOW_FAILED, error=error_msg)
                 if self.verbose:
                     self.console.print(Panel(
                         f"[bold red]❌ Workflow completed with errors:[/bold red]\n"
@@ -646,6 +687,7 @@ class AgentOrchestrator:
             # Extract the final blog post
             final_blog_post = final_state.get("final_blog_post")
             if not final_blog_post:
+                self._publish_event(EventKind.WORKFLOW_FAILED, error="No blog post generated from workflow")
                 if self.verbose:
                     print("❌ No final blog post found in workflow result")
                     print(f"Available keys: {list(final_state.keys())}")
@@ -669,6 +711,10 @@ class AgentOrchestrator:
             
             # Calculate generation metrics
             generation_time = time.time() - start_time
+            self._publish_event(
+                EventKind.WORKFLOW_COMPLETED,
+                details={"generation_time": generation_time},
+            )
             
             return BlogGenerationResult(
                 success=True,
@@ -681,6 +727,7 @@ class AgentOrchestrator:
             
         except Exception as e:
             tb = traceback.format_exc()
+            self._publish_event(EventKind.WORKFLOW_FAILED, error=str(e))
             self.console.print(Panel(
                 f"[bold red]❌ Workflow execution failed[/bold red]\n"
                 f"[red]{str(e)}[/red]\n\n"
