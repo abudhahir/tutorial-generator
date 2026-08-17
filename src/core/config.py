@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     
     # Blog Generation Settings
     default_model: str = Field("gpt-4", env="DEFAULT_MODEL")
+    default_anthropic_model: str = Field("claude-opus-5", env="DEFAULT_ANTHROPIC_MODEL")
     default_temperature: float = Field(0.7, env="DEFAULT_TEMPERATURE")
     max_tokens: int = Field(4000, env="MAX_TOKENS")
     

@@ -252,6 +252,8 @@ class BaseAgent(ABC):
             self.model_name = ollama_model or model_name or settings.default_ollama_model
         elif use_lm_studio:
             self.model_name = lm_studio_model or model_name or settings.default_lm_studio_model
+        elif self.agent_runtime is AgentRuntime.ANTHROPIC:
+            self.model_name = model_name or settings.default_anthropic_model
         else:
             self.model_name = model_name or settings.default_model
             
@@ -280,9 +282,15 @@ class BaseAgent(ABC):
         """Initialize the language model based on configuration or Ollama."""
         try:
             if self.agent_runtime is AgentRuntime.ANTHROPIC:
-                raise NotImplementedError(
-                    "The Anthropic agent runtime is not implemented yet"
+                from anthropic import AsyncAnthropic
+
+                if not settings.anthropic_api_key:
+                    raise ValueError("Anthropic API key required for the Anthropic agent runtime")
+                self.llm = AsyncAnthropic(
+                    api_key=settings.anthropic_api_key.strip(),
+                    timeout=self.request_timeout,
                 )
+                return
 
             if self.agent_runtime is AgentRuntime.OPENAI:
                 import os
@@ -458,7 +466,15 @@ class BaseAgent(ABC):
             System prompt string
         """
         return f"You are {self.name}, {self.description}"
-    
+
+    @staticmethod
+    def _build_user_content(user_input: str, context: Optional[Dict[str, Any]] = None) -> str:
+        """Build the user message used by SDK-native runtimes."""
+        if not context:
+            return user_input
+        context_str = "\n".join(f"{key}: {value}" for key, value in context.items())
+        return f"Context:\n{context_str}\n\nUser Input:\n{user_input}"
+
     def create_messages(self, user_input: str, context: Optional[Dict[str, Any]] = None) -> list[BaseMessage]:
         """Create the message list for the LLM.
         
@@ -521,6 +537,21 @@ class BaseAgent(ABC):
                 prompt = f"Context:\n{context_str}\n\nUser Input:\n{user_input}"
             result = await Runner.run(self.llm, prompt)
             return self._clean_response(str(result.final_output))
+
+        if self.agent_runtime is AgentRuntime.ANTHROPIC:
+            response = await self.llm.messages.create(
+                model=self.model_name,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+                system=self.get_system_prompt(),
+                messages=[{"role": "user", "content": self._build_user_content(user_input, context)}],
+            )
+            response_content = "".join(
+                block.text
+                for block in response.content
+                if getattr(block, "type", None) == "text"
+            )
+            return self._clean_response(response_content)
 
         messages = self.create_messages(user_input, context)
         
@@ -627,6 +658,19 @@ class BaseAgent(ABC):
                     delta = getattr(data, "delta", None)
                     if delta:
                         yield delta
+            return
+
+        if self.agent_runtime is AgentRuntime.ANTHROPIC:
+            async with self.llm.messages.stream(
+                model=self.model_name,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+                system=self.get_system_prompt(),
+                messages=[{"role": "user", "content": self._build_user_content(user_input, context)}],
+            ) as stream:
+                async for text in stream.text_stream:
+                    if text:
+                        yield text
             return
 
         messages = self.create_messages(user_input, context)

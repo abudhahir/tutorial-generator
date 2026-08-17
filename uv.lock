@@ -1237,6 +1237,7 @@ name = "im-poster"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "anthropic" },
     { name = "chromadb" },
     { name = "fastapi" },
     { name = "fastmcp" },
@@ -1278,6 +1279,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", specifier = ">=0.64.0" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=24.0.0" },
     { name = "chromadb", specifier = ">=0.4.0" },
     { name = "fastapi", specifier = ">=0.110.0" },
